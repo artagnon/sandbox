@@ -6,7 +6,10 @@ assertPrime x = null divisors
     where divisors = takeWhile (<= div x 2) [y | y <- [2..], mod x y == 0]
 
 euler3 :: (Integral a) => a
-euler3 = last $ takeWhile (< 600851475143) [x | x <- [2..600851475143], mod 600851475143 x == 0, assertPrime x]
+euler3 = head $ factorize 600851475143 []
+    where factorize 1 l = l
+          factorize x l = factorize (x `div` (smallestPrimeFactor x)) l++[smallestPrimeFactor x]
+          smallestPrimeFactor x = head [y | y <- [2..], x `mod` y == 0]
                    
 euler7 :: (Integral a) => a
 euler7 = last $ take 10001 [x | x <- [2..], assertPrime x] -- Takes too long to compute! :'(
