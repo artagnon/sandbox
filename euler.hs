@@ -5,6 +5,10 @@ assertPrime :: (Integral a) => a -> Bool
 assertPrime x = null divisors
     where divisors = takeWhile (<= div x 2) [y | y <- [2..], mod x y == 0]
 
+euler2 :: (Integral a) => a
+euler2 = sum $ takeWhile (< 4000000) $ filter even fiblist
+    where fiblist = 1 : 2 : (zipWith (+) fiblist (tail fiblist))
+
 euler3 :: (Integral a) => a
 euler3 = head $ factorize 600851475143 []
     where factorize 1 l = l
