@@ -95,7 +95,16 @@ euler25 :: (Integral a) => a
 euler25 = fst $ head $ filter (\x -> div (snd x) (10^999) /= 0) zippedFiblist
     where zippedFiblist = zip [1..] fiblist
           fiblist = 1 : 1 : (zipWith (+) fiblist (tail fiblist))
-                          
+
+euler30 :: (Integral a) => [a]
+euler30 = [x | x <- [2 ..], x == sum5p x]
+    -- Manually break when necessary
+    where sum5p x = sum [((x `mod` (10 ^ y)) `div` (10 ^ (y - 1))) ^ 5 | y <- [1 .. length (show x)]]
+
+euler34 = [x | x <- [1 ..], x == sumOfFacDigits x]
+    -- Manually break when necessary
+    where sumOfFacDigits x = sum [factorial ((x `mod` (10 ^ y)) `div` (10 ^ (y - 1))) | y <- [1 .. length (show x)]]
+
 decToBin x = reverse $ decToBin' x
     where
       decToBin' 0 = []
