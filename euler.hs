@@ -96,8 +96,19 @@ decToBin x = reverse $ decToBin' x
 euler48 :: (Integral a) => a
 euler48 = (sum [x^x | x <- [1..1000]]) `mod` 10^10
           
+euler52 = head [x | x <- [1 ..], assertPermutation x (2*x), assertPermutation x (3*x), assertPermutation x (4*x), assertPermutation x (5*x), assertPermutation x (6*x)]
+    -- Compiled version finishes in 1.8s
+    where assertPermutation x y =  null . Set.toList . Set.difference (Set.fromList . extractDigits $ y) $ Set.fromList . extractDigits $ x
+          extractDigits x = [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. length (show x)]]
+
+euler56 = maximum . map sumOfDigits $ [a^b | a <- [1 .. 99], b <- [1 .. 99]]
+    where sumOfDigits x = sum [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. length (show x)]]
+
 {-
 euler80 :: (Integral a) => a
 euler80 = filter assertImperfectSquare [1..100]
     where assertImperfectSquare x = ceiling
 -}
+
+euler97 = take 10 . extractDigits $ (28433 * 2^7830457 + 1)
+    where extractDigits x = [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. length (show x)]]
