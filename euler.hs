@@ -67,8 +67,12 @@ factors a (x:xs)
                    
 -- euler13 in dedicated euler13.hs
 
-euler14 = maximum $ map n_series_len [13, 12 .. ]
-    where n_series_len n = length $ takeWhile (/= 1) (iterate n_series n) ++ [1]
+euler14 = foldl1' (maxBy (comparing n_series_len)) [2, 3 .. 13]
+    -- Compiled version finishes in 190 seconds
+    where maxBy compare x y = case x `compare` y of
+                                LT -> y
+                                _  -> x
+          n_series_len n = length $ takeWhile (/= 1) (iterate n_series n) ++ [1]
           n_series n
               | even n = div n 2
               | otherwise = 3 * n + 1
