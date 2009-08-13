@@ -89,6 +89,10 @@ euler25 = fst $ head $ filter (\x -> div (snd x) (10^999) /= 0) zippedFiblist
     where zippedFiblist = zip [1..] fiblist
           fiblist = 1 : 1 : (zipWith (+) fiblist (tail fiblist))
                           
+decToBin x = reverse $ decToBin' x
+    where
+      decToBin' 0 = []
+      decToBin' y = let (a,b) = quotRem y 2 in [b] ++ decToBin' a
 euler48 :: (Integral a) => a
 euler48 = (sum [x^x | x <- [1..1000]]) `mod` 10^10
           
