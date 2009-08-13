@@ -1,4 +1,6 @@
 import Data.List
+import Data.Ord
+import qualified Data.Set as Set
 
 euler1 :: (Integral a) => a
 euler1 = sum [x | x <- [1..999], mod x 3 == 0 || mod x 5 == 0]
