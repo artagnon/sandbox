@@ -79,7 +79,14 @@ euler14 = foldl1' (maxBy (comparing n_series_len)) [2, 3 .. 13]
 
 euler16 :: (Integral a) => a
 euler16 = sum [(2 ^ 1000 `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. 302]]
-                          
+
+euler17 = sumLen $ (until100 ++ ["onehundred"] ++ [x ++ "hundredand" ++ y | x <- units, y <- until100] ++ ["onethousand"])
+    where until100 = units ++ ["ten"] ++ until20 ++ tens ++ [x++y | x <- tens, y <- units]
+          units = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+          until20 = ["eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"]
+          tens = ["twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+          sumLen = length . (foldl1 (++))
+
 euler20 :: (Integral a) => a
 euler20 = sumOfDigits $ product [1 .. 100]
     where sumOfDigits x = sum [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. 158]]
