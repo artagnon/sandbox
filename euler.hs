@@ -109,9 +109,24 @@ decToBin x = reverse $ decToBin' x
     where
       decToBin' 0 = []
       decToBin' y = let (a,b) = quotRem y 2 in [b] ++ decToBin' a
+
+euler36 = sum [x | x <- [1 .. 999999], assertPalindrome x, (reverse . decToBin $ x) == decToBin x]
+    where assertPalindrome x = (show x) == (reverse $ show x)
+
+euler39 = maximumBy (comparing length) lists
+    -- Compiled version finshes in 175s
+    where lists = [p:[(p-a-b) | a <- [1 .. p], b <- [a .. p], a^2 + b^2 == (p-a-b)^2] | p <- [1 .. 1000]]
+
+-- euler42 in dedicated euler42.hs
+
+euler45 = Set.toList . Set.intersection triangleSeries . Set.intersection pentagonalSeries $ hexagonalSeries
+    where triangleSeries = Set.fromList [div (n * (n + 1)) 2 | n <- [2 .. 100000]]
+          pentagonalSeries = Set.fromList [div (n * (3*n - 1)) 2 | n <- [2 .. 100000]]
+          hexagonalSeries = Set.fromList [n * (2*n - 1) | n <- [2 .. 100000]]
+
 euler48 :: (Integral a) => a
 euler48 = (sum [x^x | x <- [1..1000]]) `mod` 10^10
-          
+
 euler52 = head [x | x <- [1 ..], assertPermutation x (2*x), assertPermutation x (3*x), assertPermutation x (4*x), assertPermutation x (5*x), assertPermutation x (6*x)]
     -- Compiled version finishes in 1.8s
     where assertPermutation x y =  null . Set.toList . Set.difference (Set.fromList . extractDigits $ y) $ Set.fromList . extractDigits $ x
