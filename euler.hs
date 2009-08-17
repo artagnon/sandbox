@@ -79,6 +79,8 @@ euler14 = foldl1' (maxBy (comparing n_series_len)) [2, 3 .. 13]
               | even n = div n 2
               | otherwise = 3 * n + 1
 
+euler15 n = div (factorial (2*n)) ((factorial n)^2)
+
 euler16 :: (Integral a) => a
 euler16 = sum [(2 ^ 1000 `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. 302]]
 
