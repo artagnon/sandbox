@@ -145,5 +145,17 @@ euler80 = filter assertImperfectSquare [1..100]
     where assertImperfectSquare x = ceiling
 -}
 
+oldeuler71 n = maximum' . fracList $ n
+    -- Compiled version doesn't finish in 237s
+    where fracList lim = [[x, y] | y <- [1 .. lim], x <- [1 .. y], gcd x y == 1, x * 7 < y * 3]
+          maximum' xs = foldl1' fracMax xs
+          fracMax x y = if (head x) * (last y) < (head y) * (last x) then y else x
+
+euler71 = maximum' . fracList $ 1000000
+    -- Compiled version finishes under a second
+    where fracList lim = [[x, y] | x <- [(((div lim 7) - 1) * 3) .. (div lim 7) * 3], y <- [(((div lim 7) - 1) * 7) .. ((div lim 7) * 7)], gcd x y == 1, x * 7 < y * 3]
+          maximum' xs = foldl1' fracMax xs
+          fracMax x y = if (head x) * (last y) < (head y) * (last x) then y else x
+
 euler97 = take 10 . extractDigits $ (28433 * 2^7830457 + 1)
     where extractDigits x = [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. length (show x)]]
