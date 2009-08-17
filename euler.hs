@@ -157,5 +157,9 @@ euler71 = maximum' . fracList $ 1000000
           maximum' xs = foldl1' fracMax xs
           fracMax x y = if (head x) * (last y) < (head y) * (last x) then y else x
 
+euler73 = length . filter (\x -> (3 * (head x) > (last x)) && (2 * (head x) < (last x))) . fracList $ 10000
+    -- Compiled version finishes in 53s
+    where fracList lim = [[x, y] | y <- [2 .. lim], x <- [1 .. y], gcd x y == 1]
+
 euler97 = take 10 . extractDigits $ (28433 * 2^7830457 + 1)
     where extractDigits x = [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. length (show x)]]
