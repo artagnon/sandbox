@@ -19,7 +19,6 @@ euler3 = head $ factorize 600851475143 []
           factorize x l = factorize (x `div` (smallestPrimeFactor x)) l++[smallestPrimeFactor x]
           smallestPrimeFactor x = head [y | y <- [2..], x `mod` y == 0]
 
-
 euler4 :: (Integral a) => a
 euler4 = maximum $ filter assertPalindrome [x * y | x <- [999, 998 .. 100], y <- [999, 998 .. 100]]
     where assertPalindrome x = (show x) == (reverse $ show x)
@@ -95,15 +94,42 @@ euler20 :: (Integral a) => a
 euler20 = sumOfDigits $ product [1 .. 100]
     where sumOfDigits x = sum [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. 158]]
 
+{-                          
+euler21 :: (Integral a) => a -> a
+euler21 n = sum . stemFactors . (factors n) $ filterPrimes n
+    where numberOfFactors n = product . map ((+1) . length) . group . (factors n) $ filterPrimes n
+          filterPrimes n = filter (\x -> n `mod` x == 0) primes
+stemFactors a =
+    where countDivisors
+-}
+
+
+permute [] = []
+permute [a,b] = [a,b,b,a]
+permute (x:xs) = x:(permute xs)
+
+euler24 = take 9 (filterDigits [0 .. 9] 0)
+    where filterDigits digitList n = (digitList !! (fromInteger (leftOverSeries !! n))) : filterDigits (filter (/= (digitList !! (fromInteger (leftOverSeries !! n)))) digitList) (n + 1)
+          leftOverSeries = take 9 (leftOver (10^6) 9)
+          leftOver m n = (div m (factorial n)) : leftOver (m - (div m (factorial n)) * (factorial n)) (n - 1)
+
+
 euler25 :: (Integral a) => a
 euler25 = fst $ head $ filter (\x -> div (snd x) (10^999) /= 0) zippedFiblist
     where zippedFiblist = zip [1..] fiblist
           fiblist = 1 : 1 : (zipWith (+) fiblist (tail fiblist))
 
+euler29 = length . Set.toList . Set.fromList $ [a^b | a <- [2 .. 100], b <- [2 .. 100]]
+
 euler30 :: (Integral a) => [a]
 euler30 = [x | x <- [2 ..], x == sum5p x]
     -- Manually break when necessary
     where sum5p x = sum [((x `mod` (10 ^ y)) `div` (10 ^ (y - 1))) ^ 5 | y <- [1 .. length (show x)]]
+
+factorial :: Integer -> Integer
+factorial 0 = 1
+factorial n | n > 0 = n * factorial (n-1)
+
 
 euler34 = [x | x <- [1 ..], x == sumOfFacDigits x]
     -- Manually break when necessary
@@ -128,8 +154,15 @@ euler45 = Set.toList . Set.intersection triangleSeries . Set.intersection pentag
           pentagonalSeries = Set.fromList [div (n * (3*n - 1)) 2 | n <- [2 .. 100000]]
           hexagonalSeries = Set.fromList [n * (2*n - 1) | n <- [2 .. 100000]]
 
+euler47 = map (fst) . filter (\x -> all (== 4) (snd x)) $ [(x, [primesLen x, primesLen (x + 1), primesLen (x + 2), primesLen (x + 3)]) | x <- [1 .. ]]
+    -- Compiled version finishes in 22 seconds
+    where primesLen x = length . Set.toList . Set.fromList . factors x $ primes
+
 euler48 :: (Integral a) => a
 euler48 = (sum [x^x | x <- [1..1000]]) `mod` 10^10
+
+euler50 :: (Integral a) => [a]
+euler50 = takeWhile (< (10^6)) [x | x <- primes, any (== x) . takeWhile (<= x) $ [sum . take n $ primes | n <- [1 ..]]]
 
 euler52 = head [x | x <- [1 ..], assertPermutation x (2*x), assertPermutation x (3*x), assertPermutation x (4*x), assertPermutation x (5*x), assertPermutation x (6*x)]
     -- Compiled version finishes in 1.8s
@@ -138,6 +171,13 @@ euler52 = head [x | x <- [1 ..], assertPermutation x (2*x), assertPermutation x 
 
 euler56 = maximum . map sumOfDigits $ [a^b | a <- [1 .. 99], b <- [1 .. 99]]
     where sumOfDigits x = sum [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. length (show x)]]
+
+euler57 = length . filter(\x -> length (show (head x)) > length (show (last x))) $ fracList
+    where fracList = take 1000 . map (\x -> [head x + last x, last x]) . iterate nextRoot2 $ [1, 2]
+          nextRoot2 [a, b] = [b, (2 * b + a)]
+
+euler63 = [x | x <- [1 .. ], any (\y -> length y `mod` length (show x) == 0) (group . factors x $ primes)]
+-- Why should it be limited?
 
 {-
 euler80 :: (Integral a) => a
@@ -161,5 +201,19 @@ euler73 = length . filter (\x -> (3 * (head x) > (last x)) && (2 * (head x) < (l
     -- Compiled version finishes in 53s
     where fracList lim = [[x, y] | y <- [2 .. lim], x <- [1 .. y], gcd x y == 1]
 
+euler87 = length . takeWhile (<= 50000000) $ mooList
+    -- Need to speed up!
+    where mooList = [x | x <- [28 .. ], any (== x) . takeWhile (<= x) $ [p1^2 + p2^3 + p3^4 | p1 <- takeWhile (\y -> y^2 < x) primes, p2 <- takeWhile (\y -> y^3 < x) primes, p3 <- takeWhile (\y -> y^4 < x) primes]]
+
+extractDigits :: (Integral a) => a -> [a]
+extractDigits x = [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. length (show x)]]
+
 euler97 = take 10 . extractDigits $ (28433 * 2^7830457 + 1)
-    where extractDigits x = [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. length (show x)]]
+
+assertNotBouncy x = (maximum y == head y) && (minimum y == last y) || (maximum y == last y) && (minimum y == head y)
+    where y = extractDigits x
+
+euler112 = last . takeWhile (\x -> ((fromJust . elemIndex x $ bouncyTerms) + 1) * 100 <= (75 * x)) $ bouncyTerms
+    -- Doesn't reach 90% at 21780! Is the question wrong?
+    -- In fact, it never seems to reach 80% :(
+    where bouncyTerms = filter (not . assertNotBouncy) [100 .. ]
