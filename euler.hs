@@ -126,6 +126,30 @@ euler30 = [x | x <- [2 ..], x == sum5p x]
     -- Manually break when necessary
     where sum5p x = sum [((x `mod` (10 ^ y)) `div` (10 ^ (y - 1))) ^ 5 | y <- [1 .. length (show x)]]
 
+euler31old = length
+             [(a, b, c, d, e, f, g, h) |
+                                         a <- [0 .. div (200) 200],
+                                         b <- [0 .. div (200 - 200 * a) 100],
+                                         c <- [0 .. div (200 - 200 * a - 100 * b) 50],
+                                         d <- [0 .. div (200 - 200 * a - 100 * b - 50 * c) 20],
+                                         e <- [0 .. div (200 - 200 * a - 100 * b - 50 * c - 20 * d) 10],
+                                         f <- [0 .. div (200 - 200 * a - 100 * b - 50 * c - 20 * d - 10 * e) 5],
+                                         g <- [0 .. div (200 - 200 * a - 100 * b - 50 * c - 20 * d - 10 * e - 5 * f) 2],
+                                         h <- [200 - 200 * a - 100 * b - 50 * c - 20 * d - 10 * e - 5 * f - 2 * g]]
+
+denomCombs :: (Integral a) => a -> [a] -> a
+denomCombs _ [] = 0
+denomCombs remaining (x:xs) =
+    iter (div remaining x)
+    where
+      iter 0 = callWithN 0
+      iter n = callWithN n + iter (n - 1)
+      callWithN n
+          | length xs == 0 = 1 + denomCombs (remaining - n * x) xs
+          | otherwise = denomCombs (remaining - n * x) xs
+
+euler31 = denomCombs 200 [200, 100, 50, 20, 10, 5, 2]
+
 factorial :: Integer -> Integer
 factorial 0 = 1
 factorial n | n > 0 = n * factorial (n-1)
@@ -200,6 +224,8 @@ euler71 = maximum' . fracList $ 1000000
 euler73 = length . filter (\x -> (3 * (head x) > (last x)) && (2 * (head x) < (last x))) . fracList $ 10000
     -- Compiled version finishes in 53s
     where fracList lim = [[x, y] | y <- [2 .. lim], x <- [1 .. y], gcd x y == 1]
+
+euler76 = denomCombs 100 [99, 98 .. 2]
 
 euler87 = length . takeWhile (<= 50000000) $ mooList
     -- Need to speed up!
