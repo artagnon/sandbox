@@ -117,6 +117,12 @@ stemFactors a =
     where countDivisors
 -}
 
+stemDivisors :: (Integral a) => [a] -> [a] -> [a]
+stemDivisors [] [] = [1]
+stemDivisors (x:xs) (y:ys) = iter y
+    where iter 0 = callWithN 0
+          iter n = callWithN n ++ iter (n - 1)
+          callWithN n = map (* (x^n)) (stemDivisors xs ys)
 
 permute [] = []
 permute [a,b] = [a,b,b,a]
