@@ -108,14 +108,15 @@ euler20 :: (Integral a) => a
 euler20 = sumOfDigits $ product [1 .. 100]
     where sumOfDigits x = sum [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. 158]]
 
-{-                          
-euler21 :: (Integral a) => a -> a
-euler21 n = sum . stemFactors . (factors n) $ filterPrimes n
-    where numberOfFactors n = product . map ((+1) . length) . group . (factors n) $ filterPrimes n
-          filterPrimes n = filter (\x -> n `mod` x == 0) primes
-stemFactors a =
-    where countDivisors
--}
+
+euler21 = sum . filter assertAmicable $ [x | x <- [2 .. 9999]]
+     where factors n = stemDivisors (uniquePrimeFactors n) (multiplicities n)
+           uniquePrimeFactors n = Set.toList . Set.fromList . primeFactorList $ n
+           multiplicities n = map length . group . primeFactorList $ n
+           primeFactorList n = primeFactors n . filterPrimes $ n
+           filterPrimes n = filter (\x -> n `mod` x == 0) primes
+           assertAmicable n = (sumDivisors n /= n) && (sumDivisors . sumDivisors $ n) == n
+           sumDivisors n = (sum . drop 1 . factors $ n)
 
 stemDivisors :: (Integral a) => [a] -> [a] -> [a]
 stemDivisors [] [] = [1]
