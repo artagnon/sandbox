@@ -1,5 +1,6 @@
 import Data.List
 import Data.Ord
+import Data.Maybe
 import qualified Data.Set as Set
 
 euler1 :: (Integral a) => a
@@ -54,17 +55,17 @@ euler10 = sum $ takeWhile(< 2000000) primes
 -- euler11 in dedicated euler11.hs
 
 euler12 :: (Integral a) => a
-euler12 = head $ filter ((> 500) . numberOfFactors) triangleSeries
+euler12 = head $ filter ((> 500) . numberOfPrimeFactors) triangleSeries
     where triangleSeries = [div (n * (n + 1)) 2 | n <- [1..]]
-          numberOfFactors n = product . map ((+1) . length) . group . (factors n) $ filterPrimes n
+          numberOfPrimeFactors n = product . map ((+1) . length) . group . (primeFactors n) $ filterPrimes n
           filterPrimes n = filter (\x -> n `mod` x == 0) primes
 
-factors :: (Integral a) => a -> [a] -> [a]
+primeFactors :: (Integral a) => a -> [a] -> [a]
 -- Pass a list of prime numbers to me :)
-factors 1 _ = []
-factors a (x:xs)
-        | a `mod` x /= 0 = factors a xs
-        | otherwise = x : (factors (a `div` x) (x:xs))
+primeFactors 1 _ = []
+primeFactors a (x:xs)
+        | a `mod` x /= 0 = primeFactors a xs
+        | otherwise = x : (primeFactors (a `div` x) (x:xs))
                    
 -- euler13 in dedicated euler13.hs
 
@@ -201,7 +202,7 @@ euler45 = Set.toList . Set.intersection triangleSeries . Set.intersection pentag
 
 euler47 = map (fst) . filter (\x -> all (== 4) (snd x)) $ [(x, [primesLen x, primesLen (x + 1), primesLen (x + 2), primesLen (x + 3)]) | x <- [1 .. ]]
     -- Compiled version finishes in 22 seconds
-    where primesLen x = length . Set.toList . Set.fromList . factors x $ primes
+    where primesLen x = length . Set.toList . Set.fromList . primeFactors x $ primes
 
 euler48 :: (Integral a) => a
 euler48 = (sum [x^x | x <- [1..1000]]) `mod` 10^10
@@ -221,7 +222,7 @@ euler57 = length . filter(\x -> length (show (head x)) > length (show (last x)))
     where fracList = take 1000 . map (\x -> [head x + last x, last x]) . iterate nextRoot2 $ [1, 2]
           nextRoot2 [a, b] = [b, (2 * b + a)]
 
-euler63 = [x | x <- [1 .. ], any (\y -> length y `mod` length (show x) == 0) (group . factors x $ primes)]
+euler63 = [x | x <- [1 .. ], any (\y -> length y `mod` length (show x) == 0) (group . primeFactors x $ primes)]
 -- Why should it be limited?
 
 {-
