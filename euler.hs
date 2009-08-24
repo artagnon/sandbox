@@ -84,23 +84,23 @@ euler15 n = div (factorial (2*n)) ((factorial n)^2)
 euler16 :: (Integral a) => a
 euler16 = sum [(2 ^ 1000 `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. 302]]
 
-euler17 = sumLen $ (until100 ++ ["onehundred"] ++ [x ++ "hundredand" ++ y | x <- units, y <- until100] ++ ["onethousand"])
+euler17 = sumLen $ (until100 ++ [x ++ "hundred" | x <- units] ++ [x ++ "hundredand" ++ y | x <- units, y <- until100] ++ ["onethousand"])
     where until100 = units ++ ["ten"] ++ until20 ++ tens ++ [x++y | x <- tens, y <- units]
           units = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
           until20 = ["eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"]
           tens = ["twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
           sumLen = length . (foldl1 (++))
 
-maximizeTree triangleTree
-    | length triangleTree == 1 = head (triangleTree !! 0)
-    | otherwise = maximum callWithN n triangleTree
-    where iter 0 = 1
-          iter n = callWithN n : iter (n - 1)
-          callWithN n = (slides !! chooseLRslide + maximizeTree . pruneTree n chooseLRslide $ triangleTree)
-          pruneTree n 0 triangleTree = drop (1 + n) . map (reverse . drop 1 . reverse . drop (n - 1)) $ triangleTree
-          pruneTree n 1 triangleTree = drop (1 + n) . map (reverse . drop (n - 1) . reverse . drop 1) $ triangleTree
-          chooseLRslide = if slides !! 0 > slides !! 1 then 0 else 1
-          slides = [(sum . map head . take n $ triangleTree), (sum . map last . take n $ triangleTree)]
+-- maximizeTree triangleTree
+--     | length triangleTree == 1 = head (triangleTree !! 0)
+--     | otherwise = maximum callWithN n triangleTree
+--     where iter 0 = 1
+--           iter n = callWithN n : iter (n - 1)
+--           callWithN n = (slides !! chooseLRslide + maximizeTree . pruneTree n chooseLRslide $ triangleTree)
+--           pruneTree n 0 triangleTree = drop (1 + n) . map (reverse . drop 1 . reverse . drop (n - 1)) $ triangleTree
+--           pruneTree n 1 triangleTree = drop (1 + n) . map (reverse . drop (n - 1) . reverse . drop 1) $ triangleTree
+--           chooseLRslide = if slides !! 0 > slides !! 1 then 0 else 1
+--           slides = [(sum . map head . take n $ triangleTree), (sum . map last . take n $ triangleTree)]
 
 -- euler18 :: (Integral a) => [a] -> a
 -- euler18 = maximizeTree [[75], [95, 64], [17, 47, 82], [18, 35, 87, 10], [20, 04, 82, 47, 65], [19, 01, 23, 75, 03, 34], [88, 02, 77, 73, 07, 63, 67], [99, 65, 04, 28, 06, 16, 70, 92], [41, 41, 26, 56, 83, 40, 80, 70, 33], [41, 48, 72, 33, 47, 32, 37, 16, 94, 29], [53, 71, 44, 65, 25, 43, 91, 52, 97, 51, 14], [70, 11, 33, 28, 77, 73, 17, 78, 39, 68, 17, 57], [91, 71, 52, 38, 17, 14, 91, 43, 58, 50, 27, 29, 48], [63, 66, 04, 68, 89, 53, 67, 30, 73, 16, 69, 87, 40, 31], [04, 62, 98, 27, 23, 09, 70, 98, 73, 93, 38, 53, 60, 04, 23]]
@@ -109,15 +109,24 @@ euler20 :: (Integral a) => a
 euler20 = sumOfDigits $ product [1 .. 100]
     where sumOfDigits x = sum [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. 158]]
 
+-- euler21 :: (Integral a) => a
+-- euler21 = sum . filter assertAmicable $ [x | x <- [2 .. 9999]]
+--      where factors n = stemDivisors (uniquePrimeFactors n) (multiplicities n)
+--            uniquePrimeFactors n = Set.toList . Set.fromList . primeFactorList $ n
+--            multiplicities n = map length . group . primeFactorList $ n
+--            primeFactorList n = primeFactors n . filterPrimes $ n
+--            filterPrimes n = filter (\x -> n `mod` x == 0) primes
+--            assertAmicable n = (sumDivisors n /= n) && (sumDivisors . sumDivisors $ n) == n
+--            sumDivisors n = (sum . drop 1 . factors $ n)
 
-euler21 = sum . filter assertAmicable $ [x | x <- [2 .. 9999]]
-     where factors n = stemDivisors (uniquePrimeFactors n) (multiplicities n)
-           uniquePrimeFactors n = Set.toList . Set.fromList . primeFactorList $ n
-           multiplicities n = map length . group . primeFactorList $ n
-           primeFactorList n = primeFactors n . filterPrimes $ n
-           filterPrimes n = filter (\x -> n `mod` x == 0) primes
-           assertAmicable n = (sumDivisors n /= n) && (sumDivisors . sumDivisors $ n) == n
-           sumDivisors n = (sum . drop 1 . factors $ n)
+euler23 = take 100 abundantSeries
+    where abundantSeries = filter(\x -> sumDivisors x > x) [x | x <- [2 ..]]
+          factors n = stemDivisors (uniquePrimeFactors n) (multiplicities n)
+          sumDivisors n = (sum . drop 1 . factors $ n)
+          uniquePrimeFactors n = Set.toList . Set.fromList . primeFactorList $ n
+          multiplicities n = map length . group . primeFactorList $ n
+          primeFactorList n = primeFactors n . filterPrimes $ n
+          filterPrimes n = filter (\x -> n `mod` x == 0) primes
 
 stemDivisors :: (Integral a) => [a] -> [a] -> [a]
 stemDivisors [] [] = [1]
@@ -132,15 +141,12 @@ interpose x list = iter (length list)
           iter n = callWithN n ++ iter (n - 1)
           callWithN n = [(take n list) ++ [x] ++ (drop n list)]
 
-euler24 = take 9 (filterDigits [0 .. 9] 0)
-    where filterDigits digitList n = (digitList !! (fromInteger (leftOverSeries !! n))) : filterDigits (filter (/= (digitList !! (fromInteger (leftOverSeries !! n)))) digitList) (n + 1)
-          leftOverSeries = take 9 (leftOver (10^6) 9)
-          leftOver m n = (div m (factorial n)) : leftOver (m - (div m (factorial n)) * (factorial n)) (n - 1)
 permute :: [a] -> [[a]]
 permute [] = [[]]
 permute [a, b] = [[a, b], [b, a]]
 permute (x:xs) = concat [interpose x list | list <- permute xs]
 
+euler24 = (sort . permute $ [0..9]) !! 999999
 
 euler25 :: (Integral a) => a
 euler25 = fst $ head $ filter (\x -> div (snd x) (10^999) /= 0) zippedFiblist
@@ -153,17 +159,6 @@ euler30 :: (Integral a) => [a]
 euler30 = [x | x <- [2 ..], x == sum5p x]
     -- Manually break when necessary
     where sum5p x = sum [((x `mod` (10 ^ y)) `div` (10 ^ (y - 1))) ^ 5 | y <- [1 .. length (show x)]]
-
-euler31old = length
-             [(a, b, c, d, e, f, g, h) |
-                                         a <- [0 .. div (200) 200],
-                                         b <- [0 .. div (200 - 200 * a) 100],
-                                         c <- [0 .. div (200 - 200 * a - 100 * b) 50],
-                                         d <- [0 .. div (200 - 200 * a - 100 * b - 50 * c) 20],
-                                         e <- [0 .. div (200 - 200 * a - 100 * b - 50 * c - 20 * d) 10],
-                                         f <- [0 .. div (200 - 200 * a - 100 * b - 50 * c - 20 * d - 10 * e) 5],
-                                         g <- [0 .. div (200 - 200 * a - 100 * b - 50 * c - 20 * d - 10 * e - 5 * f) 2],
-                                         h <- [200 - 200 * a - 100 * b - 50 * c - 20 * d - 10 * e - 5 * f - 2 * g]]
 
 denomCombs :: (Integral a) => a -> [a] -> a
 denomCombs _ [] = 0
@@ -182,11 +177,33 @@ factorial :: Integer -> Integer
 factorial 0 = 1
 factorial n | n > 0 = n * factorial (n-1)
 
+assertPandigital x n = all (\y -> y `elem` extractDigits x) [1 .. n] && all (== 1) (map length . group . extractDigits $ x)
+    where extractDigits x = [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. length (show x)]]
+
+euler32 = sum . Set.toList . Set.fromList $ [x*y | x <- [2 .. 100], y <- [(div 1000 x) .. (div 10000 x)], assertPandigital' (extractDigits x ++ extractDigits y ++ extractDigits (x*y))]
+    where assertPandigital' x = all (\y -> y `elem` x) [1 .. 9] && all (== 1) (map length . group $ x)
+          extractDigits x = [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. length (show x)]]
+
+euler33 = filter (specialFrac) $ [[x, y] | y <- [1 .. 100], x <- [1 .. (y - 1)]]
+    where specialFrac [x, y] = if mod x 10 == firstDigit y then fracAssertEqual [x, y] (removeCommonDigits [x, y]) else False
+          fracAssertEqual [x, y] [p, q] = if x * q /= 0 then x * q == y * p else False
+          removeCommonDigits [x, y] =  [div x 10, numTail y]
+          firstDigit x = div x (10^(length (show x) - 1))
+          numTail x = mod x (10^(length (show x) - 1))
 
 euler34 = [x | x <- [1 ..], x == sumOfFacDigits x]
     -- Manually break when necessary
     where sumOfFacDigits x = sum [factorial ((x `mod` (10 ^ y)) `div` (10 ^ (y - 1))) | y <- [1 .. length (show x)]]
 
+numAssemble [] = 0
+numAssemble x = (head x) * 10^(length x - 1) + numAssemble (tail x)
+
+euler35 = filter (allRotPrime) $ (takeWhile (< (10^6)) smartPrimes)
+    -- Compiled version doesn't finish in 1000s -- Need to speed up!
+    where allRotPrime x = all (assertPrime) (map (numAssemble) (rotateDigits . reverse . extractDigits $ x))
+          rotateDigits a = [drop n a ++ take n a | n <- [0 .. length a - 1]]
+          smartPrimes = [x | x <- primes, all (`elem` [1, 3, 7, 9]) (extractDigits x)]
+   
 decToBin x = reverse $ decToBin' x
     where
       decToBin' 0 = []
@@ -199,7 +216,16 @@ euler39 = maximumBy (comparing length) lists
     -- Compiled version finshes in 175s
     where lists = [p:[(p-a-b) | a <- [1 .. p], b <- [a .. p], a^2 + b^2 == (p-a-b)^2] | p <- [1 .. 1000]]
 
+euler41 = [numAssemble x | x <- permute [1 .. 7], assertPrime . numAssemble $ x, assertPandigital' x (length (show x))]
+    where assertPandigital' x n = all (\y -> y `elem` x) [1 .. n] && all (== 1) (map length . group $ x)
+                  
 -- euler42 in dedicated euler42.hs
+
+euler44 = [(pentagonNumber (n + 1) - pentagonNumber n) | n <- [1 .. ], assertPentagonal (pentagonNumber (n + 1) + pentagonNumber n), assertPentagonal (pentagonNumber (n + 1) - pentagonNumber n)]
+    -- Need to speed up!
+    where pentagonNumber n = div (n * (3*n - 1)) 2
+          assertPentagonal x = x `elem` (takeWhile (<= x) pentagonalSeries)
+          pentagonalSeries = [div (n * (3*n - 1)) 2 | n <- [1 ..]]
 
 euler45 = Set.toList . Set.intersection triangleSeries . Set.intersection pentagonalSeries $ hexagonalSeries
     where triangleSeries = Set.fromList [div (n * (n + 1)) 2 | n <- [2 .. 100000]]
@@ -213,13 +239,25 @@ euler47 = map (fst) . filter (\x -> all (== 4) (snd x)) $ [(x, [primesLen x, pri
 euler48 :: (Integral a) => a
 euler48 = (sum [x^x | x <- [1..1000]]) `mod` 10^10
 
-euler50 :: (Integral a) => [a]
-euler50 = takeWhile (< (10^6)) [x | x <- primes, any (== x) . takeWhile (<= x) $ [sum . take n $ primes | n <- [1 ..]]]
+euler49 = [(x, y, (y + abs (x - y))) | x <- takeWhile (< 10000) . filter (> 1000) $ primes, y <- takeWhile (\y -> x + y < 10000) . filter(> x) $ primes, assertPrime (y + abs (x - y))]
+          
+euler50 :: (Integral a) => a
+-- Compiled version finishes in 850s - Need to speed up!
+euler50 = sum . maximumBy (comparing length) . filter (assertPrime . sum) . takeWhile (\x -> sum x <= (10^6)) $ [drop m . take n $ primes | n <- [99000 .. ], m <- [0 .. n-1]]
 
 euler52 = head [x | x <- [1 ..], assertPermutation x (2*x), assertPermutation x (3*x), assertPermutation x (4*x), assertPermutation x (5*x), assertPermutation x (6*x)]
     -- Compiled version finishes in 1.8s
-    where assertPermutation x y =  null . Set.toList . Set.difference (Set.fromList . extractDigits $ y) $ Set.fromList . extractDigits $ x
+    where assertPermutation x y = (Set.fromList . extractDigits $ y) == (Set.fromList . extractDigits $ x)
           extractDigits x = [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. length (show x)]]
+
+-- factorial' :: a -> a -> a
+-- factorial' n r
+--     | n == r = 1
+--     | otherwise = n * factorial' (n - 1)
+
+-- euler53 = length moo
+--     where [numCombinations n r | n <- [23 .. 100]]
+--           numCombinations n r = div (factorial' n r) (factorial r)
 
 euler56 = maximum . map sumOfDigits $ [a^b | a <- [1 .. 99], b <- [1 .. 99]]
     where sumOfDigits x = sum [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. length (show x)]]
@@ -236,12 +274,6 @@ euler80 :: (Integral a) => a
 euler80 = filter assertImperfectSquare [1..100]
     where assertImperfectSquare x = ceiling
 -}
-
-oldeuler71 n = maximum' . fracList $ n
-    -- Compiled version doesn't finish in 237s
-    where fracList lim = [[x, y] | y <- [1 .. lim], x <- [1 .. y], gcd x y == 1, x * 7 < y * 3]
-          maximum' xs = foldl1' fracMax xs
-          fracMax x y = if (head x) * (last y) < (head y) * (last x) then y else x
 
 euler71 = maximum' . fracList $ 1000000
     -- Compiled version finishes under a second
