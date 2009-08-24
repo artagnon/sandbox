@@ -126,14 +126,20 @@ stemDivisors (x:xs) (y:ys) = iter y
           iter n = callWithN n ++ iter (n - 1)
           callWithN n = map (* (x^n)) (stemDivisors xs ys)
 
-permute [] = []
-permute [a,b] = [a,b,b,a]
-permute (x:xs) = x:(permute xs)
+interpose :: a -> [a] -> [[a]]
+interpose x list = iter (length list)
+    where iter 0 = [x:list]
+          iter n = callWithN n ++ iter (n - 1)
+          callWithN n = [(take n list) ++ [x] ++ (drop n list)]
 
 euler24 = take 9 (filterDigits [0 .. 9] 0)
     where filterDigits digitList n = (digitList !! (fromInteger (leftOverSeries !! n))) : filterDigits (filter (/= (digitList !! (fromInteger (leftOverSeries !! n)))) digitList) (n + 1)
           leftOverSeries = take 9 (leftOver (10^6) 9)
           leftOver m n = (div m (factorial n)) : leftOver (m - (div m (factorial n)) * (factorial n)) (n - 1)
+permute :: [a] -> [[a]]
+permute [] = [[]]
+permute [a, b] = [[a, b], [b, a]]
+permute (x:xs) = concat [interpose x list | list <- permute xs]
 
 
 euler25 :: (Integral a) => a
