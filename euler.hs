@@ -1,6 +1,7 @@
 import Data.List
 import Data.Ord
 import Data.Maybe
+import Char
 import qualified Data.Set as Set
 
 euler1 :: (Integral a) => a
@@ -211,7 +212,7 @@ numAssemble [] = 0
 numAssemble x = (head x) * 10^(length x - 1) + numAssemble (tail x)
 
 euler35 = filter (allRotPrime) $ (takeWhile (< (10^6)) smartPrimes)
-    -- Compiled version doesn't finish in 1000s -- Need to speed up!
+    -- Compiled version finishes in 28s
     where allRotPrime x = all (assertPrime) (map (numAssemble) (rotateDigits . reverse . extractDigits $ x))
           rotateDigits a = [drop n a ++ take n a | n <- [0 .. length a - 1]]
           smartPrimes = [x | x <- primes, all (`elem` [1, 3, 7, 9]) (extractDigits x)]
@@ -223,6 +224,11 @@ decToBin x = reverse $ decToBin' x
 
 euler36 = sum [x | x <- [1 .. 999999], assertPalindrome x, (reverse . decToBin $ x) == decToBin x]
     where assertPalindrome x = (show x) == (reverse $ show x)
+
+euler38 = concat $ [filter (\x -> length x == 9 && (assertPandigital' (splitNum x) 9)) (scanl1 (++) [show (x*y) | x <- [1 .. 9]]) | y <- [2 .. ]]
+    -- Break when required
+    where assertPandigital' x n = all (\y -> y `elem` x) [1 .. n]
+          splitNum x = [digitToInt (x !! y) | y <- [0 .. (length x - 1)]]
 
 euler39 = maximumBy (comparing length) lists
     -- Compiled version finshes in 175s
