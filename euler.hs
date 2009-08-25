@@ -122,17 +122,19 @@ euler20 :: (Integral a) => a
 euler20 = sumOfDigits $ product [1 .. 100]
     where sumOfDigits x = sum [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. 158]]
 
--- euler21 :: (Integral a) => a
--- euler21 = sum . filter assertAmicable $ [x | x <- [2 .. 9999]]
---      where factors n = stemDivisors (uniquePrimeFactors n) (multiplicities n)
---            uniquePrimeFactors n = Set.toList . Set.fromList . primeFactorList $ n
---            multiplicities n = map length . group . primeFactorList $ n
---            primeFactorList n = primeFactors n . filterPrimes $ n
---            filterPrimes n = filter (\x -> n `mod` x == 0) primes
---            assertAmicable n = (sumDivisors n /= n) && (sumDivisors . sumDivisors $ n) == n
---            sumDivisors n = (sum . drop 1 . factors $ n)
+euler21 = sum . filter assertAmicable $ [x | x <- [2 .. 9999]]
+     where factors n = stemDivisors (uniquePrimeFactors n) (multiplicities n)
+           uniquePrimeFactors n = Set.toList . Set.fromList . primeFactorList $ n
+           multiplicities n = map length . group . primeFactorList $ n
+           primeFactorList n = primeFactors n . filterPrimes $ n
+           filterPrimes n = filter (\x -> n `mod` x == 0) primes
+           assertAmicable n = (sumDivisors n /= n) && (sumDivisors . sumDivisors $ n) == n
+           sumDivisors n = (sum . drop 1 . factors $ n)
 
-euler23 = take 100 abundantSeries
+-- euler22 in dedicated file
+
+euler23 = (sum [1 .. 23]) + (sum . filter(\x -> not (x `elem` (possible2Sums x (takeWhile (< x) abundantSeries)))) $ [24, 25 .. 28123])
+    -- Compiled version finishes in 1177s -- Need to speed up!
     where abundantSeries = filter(\x -> sumDivisors x > x) [x | x <- [2 ..]]
           factors n = stemDivisors (uniquePrimeFactors n) (multiplicities n)
           sumDivisors n = (sum . drop 1 . factors $ n)
@@ -140,6 +142,7 @@ euler23 = take 100 abundantSeries
           multiplicities n = map length . group . primeFactorList $ n
           primeFactorList n = primeFactors n . filterPrimes $ n
           filterPrimes n = filter (\x -> n `mod` x == 0) primes
+          possible2Sums num list = [x + y | x <- list, y <- list]
 
 stemDivisors :: (Integral a) => [a] -> [a] -> [a]
 stemDivisors [] [] = [1]
@@ -165,6 +168,12 @@ euler25 :: (Integral a) => a
 euler25 = fst $ head $ filter (\x -> div (snd x) (10^999) /= 0) zippedFiblist
     where zippedFiblist = zip [1..] fiblist
           fiblist = 1 : 1 : (zipWith (+) fiblist (tail fiblist))
+
+euler27 = maximum' [[length . takeWhile (assertPrime') $ [n^2 + a*n + b | n <- [0 .. ]], a, b] | b <- takeWhile (< 1000) primes, a <- [-(b - 1) .. 1000]]
+    -- Compiled version finishes in 7s
+    where assertPrime' x = x > 1 && assertPrime x
+          maximum' xs = foldl1' lMax xs
+          lMax x y = if head x > head y then x else y
 
 euler29 = length . Set.toList . Set.fromList $ [a^b | a <- [2 .. 100], b <- [2 .. 100]]
 
@@ -225,6 +234,13 @@ decToBin x = reverse $ decToBin' x
 euler36 = sum [x | x <- [1 .. 999999], assertPalindrome x, (reverse . decToBin $ x) == decToBin x]
     where assertPalindrome x = (show x) == (reverse $ show x)
 
+euler37 :: (Integral a) => [a]
+euler37 = take 15 . filter (\x -> all assertPrime' (lrTruncate x)) primes
+    where lrTruncate x = sort ((lTruncate . reverse . extractDigits $ x) ++ (rTruncate . reverse . extractDigits $ x))
+          rTruncate y = [numAssemble . take n $ y | n <- [1 .. (length y - 1)]]
+          lTruncate y = reverse [numAssemble . drop n $ y | n <- [0 .. (length y - 1)]]
+          assertPrime' x = x > 1 && assertPrime x
+                               
 euler38 = concat $ [filter (\x -> length x == 9 && (assertPandigital' (splitNum x) 9)) (scanl1 (++) [show (x*y) | x <- [1 .. 9]]) | y <- [2 .. ]]
     -- Break when required
     where assertPandigital' x n = all (\y -> y `elem` x) [1 .. n]
@@ -257,7 +273,10 @@ euler47 = map (fst) . filter (\x -> all (== 4) (snd x)) $ [(x, [primesLen x, pri
 euler48 :: (Integral a) => a
 euler48 = (sum [x^x | x <- [1..1000]]) `mod` 10^10
 
-euler49 = [(x, y, (y + abs (x - y))) | x <- takeWhile (< 10000) . filter (> 1000) $ primes, y <- takeWhile (\y -> x + y < 10000) . filter(> x) $ primes, assertPrime (y + abs (x - y))]
+euler49 = filter (assertPermuations) [[x, y, (y + abs (x - y))] | x <- takeWhile (< 10000) . filter (> 1000) $ primes, y <- takeWhile (\y -> y + abs (x - y) < 10000) . filter(> x) $ primes, assertPrime (y + abs (x - y))]
+    -- Compiled version finishes in 24s
+    where assertPermuations list = all (\x -> assertContainingDigits x . extractDigits $ (head list)) (tail list)
+          assertContainingDigits x list = Set.fromList (extractDigits x) == Set.fromList (list)
           
 euler50 :: (Integral a) => a
 -- Compiled version finishes in 850s - Need to speed up!
@@ -266,7 +285,6 @@ euler50 = sum . maximumBy (comparing length) . filter (assertPrime . sum) . take
 euler52 = head [x | x <- [1 ..], assertPermutation x (2*x), assertPermutation x (3*x), assertPermutation x (4*x), assertPermutation x (5*x), assertPermutation x (6*x)]
     -- Compiled version finishes in 1.8s
     where assertPermutation x y = (Set.fromList . extractDigits $ y) == (Set.fromList . extractDigits $ x)
-          extractDigits x = [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. length (show x)]]
 
 -- factorial' :: a -> a -> a
 -- factorial' n r
@@ -286,6 +304,8 @@ euler57 = length . filter(\x -> length (show (head x)) > length (show (last x)))
 
 euler63 = [x | x <- [1 .. ], any (\y -> length y `mod` length (show x) == 0) (group . primeFactors x $ primes)]
 -- Why should it be limited?
+
+-- euler67 in dedicated file
 
 {-
 euler80 :: (Integral a) => a
