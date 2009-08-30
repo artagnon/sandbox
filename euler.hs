@@ -169,6 +169,13 @@ euler25 = fst $ head $ filter (\x -> div (snd x) (10^999) /= 0) zippedFiblist
     where zippedFiblist = zip [1..] fiblist
           fiblist = 1 : 1 : (zipWith (+) fiblist (tail fiblist))
 
+euler26 :: Integer
+euler26 = maximumBy (comparing (\x -> longDivide 1 x $ [])) [1 .. 999]
+    where longDivide x y rem
+              | (x*10 `mod` y) == 0 = 1
+              | x `elem` rem = 0
+              | otherwise = 1 + (longDivide (x*10 `mod` y) y (x:rem))
+                    
 euler27 = maximum' [[length . takeWhile (assertPrime') $ [n^2 + a*n + b | n <- [0 .. ]], a, b] | b <- takeWhile (< 1000) primes, a <- [-(b - 1) .. 1000]]
     -- Compiled version finishes in 7s
     where assertPrime' x = x > 1 && assertPrime x
