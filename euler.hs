@@ -124,7 +124,7 @@ euler20 = sumOfDigits $ product [1 .. 100]
 
 euler21 = sum . filter assertAmicable $ [x | x <- [2 .. 9999]]
      where factors n = stemDivisors (uniquePrimeFactors n) (multiplicities n)
-           uniquePrimeFactors n = Set.toList . Set.fromList . primeFactorList $ n
+           uniquePrimeFactors n = nub . primeFactorList $ n
            multiplicities n = map length . group . primeFactorList $ n
            primeFactorList n = primeFactors n . filterPrimes $ n
            filterPrimes n = filter (\x -> n `mod` x == 0) primes
@@ -138,7 +138,7 @@ euler23 = (sum [1 .. 23]) + (sum . filter(\x -> not (x `elem` (possible2Sums x (
     where abundantSeries = filter(\x -> sumDivisors x > x) [x | x <- [2 ..]]
           factors n = stemDivisors (uniquePrimeFactors n) (multiplicities n)
           sumDivisors n = (sum . drop 1 . factors $ n)
-          uniquePrimeFactors n = Set.toList . Set.fromList . primeFactorList $ n
+          uniquePrimeFactors n = nub . primeFactorList $ n
           multiplicities n = map length . group . primeFactorList $ n
           primeFactorList n = primeFactors n . filterPrimes $ n
           filterPrimes n = filter (\x -> n `mod` x == 0) primes
@@ -175,7 +175,7 @@ euler27 = maximum' [[length . takeWhile (assertPrime') $ [n^2 + a*n + b | n <- [
           maximum' xs = foldl1' lMax xs
           lMax x y = if head x > head y then x else y
 
-euler29 = length . Set.toList . Set.fromList $ [a^b | a <- [2 .. 100], b <- [2 .. 100]]
+euler29 = length . nub $ [a^b | a <- [2 .. 100], b <- [2 .. 100]]
 
 euler30 :: (Integral a) => [a]
 euler30 = [x | x <- [2 ..], x == sum5p x]
@@ -202,7 +202,7 @@ factorial n | n > 0 = n * factorial (n-1)
 assertPandigital x n = all (\y -> y `elem` extractDigits x) [1 .. n] && all (== 1) (map length . group . extractDigits $ x)
     where extractDigits x = [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. length (show x)]]
 
-euler32 = sum . Set.toList . Set.fromList $ [x*y | x <- [2 .. 100], y <- [(div 1000 x) .. (div 10000 x)], assertPandigital' (extractDigits x ++ extractDigits y ++ extractDigits (x*y))]
+euler32 = sum . nub $ [x*y | x <- [2 .. 100], y <- [(div 1000 x) .. (div 10000 x)], assertPandigital' (extractDigits x ++ extractDigits y ++ extractDigits (x*y))]
     where assertPandigital' x = all (\y -> y `elem` x) [1 .. 9] && all (== 1) (map length . group $ x)
           extractDigits x = [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. length (show x)]]
 
@@ -235,7 +235,7 @@ euler36 = sum [x | x <- [1 .. 999999], assertPalindrome x, (reverse . decToBin $
     where assertPalindrome x = (show x) == (reverse $ show x)
 
 euler37 :: (Integral a) => [a]
-euler37 = take 15 . filter (\x -> all assertPrime' (lrTruncate x)) primes
+euler37 = take 15 . filter (\x -> all assertPrime' (lrTruncate x)) $ primes
     where lrTruncate x = sort ((lTruncate . reverse . extractDigits $ x) ++ (rTruncate . reverse . extractDigits $ x))
           rTruncate y = [numAssemble . take n $ y | n <- [1 .. (length y - 1)]]
           lTruncate y = reverse [numAssemble . drop n $ y | n <- [0 .. (length y - 1)]]
@@ -268,7 +268,7 @@ euler45 = Set.toList . Set.intersection triangleSeries . Set.intersection pentag
 
 euler47 = map (fst) . filter (\x -> all (== 4) (snd x)) $ [(x, [primesLen x, primesLen (x + 1), primesLen (x + 2), primesLen (x + 3)]) | x <- [1 .. ]]
     -- Compiled version finishes in 22 seconds
-    where primesLen x = length . Set.toList . Set.fromList . primeFactors x $ primes
+    where primesLen x = length . nub . primeFactors x $ primes
 
 euler48 :: (Integral a) => a
 euler48 = (sum [x^x | x <- [1..1000]]) `mod` 10^10
