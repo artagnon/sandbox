@@ -207,7 +207,7 @@ denomCombs remaining (x:xs) = iter (div remaining x)
       iter 0 = callWithN 0
       iter n = callWithN n + iter (n - 1)
       callWithN n
-          | length xs == 0 = 1 + denomCombs (remaining - n * x) xs
+          | null xs = 1
           | otherwise = denomCombs (remaining - n * x) xs
 
 euler31 :: Integer
@@ -425,3 +425,11 @@ euler112 = last . takeWhile (\x -> ((fromJust . elemIndex x $ bouncyTerms) + 1) 
 euler251 :: (Integral a) => a -> [[a]]
 -- Not fast enough :(
 euler251 lim = filter (\x -> sum x < lim) [[a, b, div ((div (8*a - 1) 3) * (div (a + 1) 3)^2) (b^2)] | a <- [1 .. lim], b <- [1 .. lim - a - 1], mod a 3 == 2, mod (8*a) 3 == 1, mod ((div (8*a - 1) 3) * (div (a + 1) 3 )^2) (b^2) == 0]
+
+euler254 :: Integer -> Integer
+-- Not fast enough :(
+euler254 x = sum [sg i | i <- [1 .. x]]
+    where f n = sum . map (factorial) . extractDigits $ n
+          sf n = sum . extractDigits . f $ n
+          g i = head . filter (\n -> sf n == i) $ [1 ..]
+          sg i = sum . extractDigits . g $ i
