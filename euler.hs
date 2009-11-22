@@ -300,11 +300,10 @@ euler45 = Set.toList . Set.intersection triangleSeries . Set.intersection pentag
           pentagonalSeries = Set.fromList [div (n * (3*n - 1)) 2 | n <- [2 .. 100000]]
           hexagonalSeries = Set.fromList [n * (2*n - 1) | n <- [2 .. 100000]]
 
--- euler46 = filter (\x -> all (\y -> not . twiceSquare x $ y) (primeDiffList)) compositeList
---     where compositeList = filter (not . assertPrime) [3, 5 .. ]
---           squaresList = [x^2 | x <- [1 .. ]]
---           twiceSquare x y = y `mod` 2 == 0 && ((div x 2) `elem` squaresList)
---           primeDiffList x = map (\y -> x-y) . reverse . takeWhile (< x) $ primes
+euler46 = head . filter (\x -> not . any (twiceSquare) $ primeDiffList x) $ compositeList
+    where compositeList = filter (not . assertPrime) [3, 5 .. ]
+          twiceSquare x = (div x 2) `elem` (takeWhile (<= x) [x^2 | x <- [1 .. ]])
+          primeDiffList x = map (\y -> x-y) . takeWhile (< x) $ primes
 
 euler47 :: [Integer]
 euler47 = map (fst) . filter (\x -> all (== 4) (snd x)) $ [(x, [primesLen x, primesLen (x + 1), primesLen (x + 2), primesLen (x + 3)]) | x <- [1 .. ]]
@@ -368,9 +367,8 @@ euler57 = length . filter(\x -> length (show (head x)) > length (show (last x)))
 assertPermutation' :: (Integral a) => [a] -> Bool
 assertPermutation' a = all (== True) [(sort . extractDigits . head $ a) == (sort . extractDigits $ x) | x <- tail a]
 
-euler63 :: [Integer]
-euler63 = [x | x <- [1 .. ], any (\y -> length y `mod` length (show x) == 0) (group . primeFactors x $ primes)]
--- Why should it be limited?
+euler63 :: Int
+euler63 = (sum . map (\n -> length . takeWhile (\x -> x == (length . extractDigits $ n^x)) $ [2 ..]) $ [2 .. 9]) + 9
 
 -- euler67 in dedicated file
 
@@ -402,6 +400,14 @@ euler87 = length . takeWhile (<= 50000000) $ mooList
 
 extractDigits :: (Integral a) => a -> [a]
 extractDigits x = [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. length (show x)]]
+
+euler92 :: Int
+euler92 = length . filter (== 89) $ [iterate n | n <- [2 .. 9999999]]
+    where iterate 1 = 1
+          iterate 89 = 89
+          iterate n = iterate . sumOfSquaresOfDigits $ n
+          sumOfSquaresOfDigits n = sum . map (\x -> x*x) . extractDigits $ n
+          
 
 euler94 :: (Integral a) => a -> [a]
 euler94 lim = takeWhile (< lim) $ [2*x + y | x <- [2 .. (div lim 3 + 1)], y <- [x - 1, x + 1], mod (4*x^2 - y^2) 4 == 0, assertTriad x y]
