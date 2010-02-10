@@ -3,26 +3,26 @@ import Data.Ord
 import Data.Maybe
 import Char
 import qualified Data.Set as Set
+import Control.Applicative
 
 euler1 :: (Integral a) => a
-euler1 = sum [x | x <- [1..999], mod x 3 == 0 || mod x 5 == 0]
+euler1 = sum . filter (\x -> (x `mod` 3 == 0 && x `mod` 5 == 0)) $ [1..999]
 
 assertPrime :: (Integral a) => a -> Bool
-assertPrime x = null divisors
-    where divisors = takeWhile (<= div x 2) [y | y <- [2..], mod x y == 0]
+assertPrime x = null . takeWhile (<= div x 2) . filter(\y -> x `mod` y == 0) $ [2..]
 
 euler2 :: (Integral a) => a
-euler2 = sum $ takeWhile (< 4000000) $ filter even fiblist
+euler2 = sum . takeWhile (< 4000000) . filter even $ fiblist
     where fiblist = 1 : 2 : (zipWith (+) fiblist (tail fiblist))
 
 euler3 :: (Integral a) => a
 euler3 = head $ factorize 600851475143 []
     where factorize 1 l = l
-          factorize x l = factorize (x `div` (smallestPrimeFactor x)) l++[smallestPrimeFactor x]
+          factorize x l = factorize (x `div` (smallestPrimeFactor x)) l ++ [smallestPrimeFactor x]
           smallestPrimeFactor x = head [y | y <- [2..], x `mod` y == 0]
 
 euler4 :: (Integral a) => a
-euler4 = maximum $ filter assertPalindrome [x * y | x <- [999, 998 .. 100], y <- [999, 998 .. 100]]
+euler4 = maximum . filter assertPalindrome $ (*) <$> [999, 998 .. 100] <*> [999, 998 .. 100]
     where assertPalindrome x = (show x) == (reverse $ show x)
 
 euler5 :: (Integral a) => a
@@ -44,8 +44,10 @@ euler7 = primes !! 10000
 
 euler8 :: (Integral a) => a -> a
 euler8 a = maximum $ map productOfDigits consecutiveList
-    where consecutiveList = [(a `mod` (10 ^ x)) `div` (10 ^ (x - 5)) | x <- [1000, 999 .. 5]]
-          productOfDigits x = product [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [5, 4 .. 1]]
+    where consecutiveList = map xFunction [1000, 999 .. 5]
+          productOfDigits x = product . map (yFunction x) $ [5, 4 .. 1]
+          xFunction x = a `mod` (10 ^ x) `div` 10 ^ (x - 5)
+          yFunction x y = x `mod` (10 ^ y) `div` 10 ^ (y - 1)
 
 euler9 :: (Integral a) => a
 euler9 = head [a * b * c | a <- [1..], b <- [1..], c <- [1..], a + b + c == 1000, a^2 + b^2 == c^2]
@@ -56,7 +58,7 @@ euler10 = sum $ takeWhile(< 2000000) primes
 -- euler11 in dedicated euler11.hs
 
 euler12 :: (Integral a) => a
-euler12 = head $ filter ((> 500) . numberOfPrimeFactors) triangleSeries
+euler12 = head . filter ((> 500) . numberOfPrimeFactors) $ triangleSeries
     where triangleSeries = [div (n * (n + 1)) 2 | n <- [1..]]
           numberOfPrimeFactors n = product . map ((+1) . length) . group . (primeFactors n) $ filterPrimes n
           filterPrimes n = filter (\x -> n `mod` x == 0) primes
@@ -85,7 +87,7 @@ euler15 :: Integer -> Integer
 euler15 n = div (factorial (2*n)) ((factorial n)^2)
 
 euler16 :: (Integral a) => a
-euler16 = sum [(2 ^ 1000 `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. 302]]
+euler16 = sum . map (\y -> 2 ^ 1000 `mod` (10 ^ y) `div` 10 ^ (y - 1)) $ [1 .. 302]
 
 euler17 :: Int
 euler17 = sumLen $ (until100 ++ [x ++ "hundred" | x <- units] ++ [x ++ "hundredand" ++ y | x <- units, y <- until100] ++ ["onethousand"])
@@ -129,7 +131,7 @@ euler20 = sumOfDigits $ product [1 .. 100]
     where sumOfDigits x = sum [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) | y <- [1 .. 158]]
 
 euler21 :: Int
-euler21 = sum . filter assertAmicable $ [x | x <- [2 .. 9999]]
+euler21 = sum . filter assertAmicable $ [2 .. 9999]
      where factors n = stemDivisors (uniquePrimeFactors n) (multiplicities n)
            uniquePrimeFactors n = nub . primeFactorList $ n
            multiplicities n = map length . group . primeFactorList $ n
@@ -248,7 +250,7 @@ euler35 = filter (allRotPrime) $ (takeWhile (< (10^6)) smartPrimes)
     -- Compiled version finishes in 28s
     where allRotPrime x = all (assertPrime) (map (numAssemble) (rotateDigits . reverse . extractDigits $ x))
           rotateDigits a = [drop n a ++ take n a | n <- [0 .. length a - 1]]
-          smartPrimes = [x | x <- primes, all (`elem` [1, 3, 7, 9]) (extractDigits x)]
+          smartPrimes = filter (\x -> all (`elem` [1, 3, 7, 9]) (extractDigits x)) primes
 
 decToBin :: (Integral a) => a -> [a]
 decToBin x = reverse $ decToBin' x
@@ -256,7 +258,7 @@ decToBin x = reverse $ decToBin' x
       decToBin' 0 = []
       decToBin' y = let (a,b) = quotRem y 2 in [b] ++ decToBin' a
 
-euler36 = sum [x | x <- [1 .. 999999], assertPalindrome x, (reverse . decToBin $ x) == decToBin x]
+euler36 = sum . filter (\x -> assertPalindrome x && (reverse . decToBin $ x) == decToBin x) $ [1 .. 999999]
     where assertPalindrome x = (show x) == (reverse $ show x)
 
 euler37 :: (Integral a) => [a]
@@ -392,6 +394,9 @@ euler73 = length . filter (\x -> (3 * (head x) > (last x)) && (2 * (head x) < (l
 
 euler76 :: Integer
 euler76 = denomCombs 100 [99, 98 .. 2]
+
+euler85 :: Integer
+euler85 = last . takeWhile (\x -> x * (x + 1) `div` 2 < 2000000) $ [1 ..]
 
 euler87 :: Int
 euler87 = length . takeWhile (<= 50000000) $ mooList
