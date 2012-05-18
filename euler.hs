@@ -356,12 +356,17 @@ euler41 = [numAssemble x |
                   
 -- euler42 in dedicated euler42.hs
 
-euler44 :: [Integer]
-euler44 = [(pentagonNumber (n + 1) - pentagonNumber n) | n <- [1 .. ], assertPentagonal (pentagonNumber (n + 1) + pentagonNumber n), assertPentagonal (pentagonNumber (n + 1) - pentagonNumber n)]
-    -- Need to speed up!
-    where pentagonNumber n = div (n * (3*n - 1)) 2
-          assertPentagonal x = x `elem` (takeWhile (<= x) pentagonalSeries)
-          pentagonalSeries = [div (n * (3*n - 1)) 2 | n <- [1 ..]]
+-- euler43 in dedicated euler43.hs
+
+euler44 :: Integer
+euler44 = head [k - j |
+                j <- pSeries, k <- pSeries,
+                j < k,
+                assertP (k + j),
+                assertP (k - j)]
+  where pNum n = (n * (3 * n - 1)) `div` 2
+        pSeries = [pNum n | n <- [1 ..]]
+        assertP x = x `elem` (takeWhile (<= x) pSeries)
 
 euler45 :: [Integer]
 euler45 = Set.toList . Set.intersection triangleSeries .
