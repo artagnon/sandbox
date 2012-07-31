@@ -1,7 +1,7 @@
 import Data.List
 import Data.Ord
 import Data.Maybe
-import Char
+import Data.Char
 import qualified Data.Set as Set
 import Control.Applicative
 
@@ -9,6 +9,7 @@ euler1 :: (Integral a) => a
 euler1 = sum . filter (\x -> (x `mod` 3 == 0 && x `mod` 5 == 0)) $ [1..999]
 
 assertPrime :: (Integral a) => a -> Bool
+assertPrime 1 = False
 assertPrime x = null . takeWhile (<= div x 2) . filter(\y -> x `mod` y == 0) $ [2..]
 
 euler2 :: (Integral a) => a
@@ -22,7 +23,7 @@ euler3 = head $ factorize 600851475143 []
                           [smallestPrimeFactor x]
           smallestPrimeFactor x = head [y | y <- [2..], x `mod` y == 0]
 
-euler4 :: (Integral a) => a
+euler4 :: Int
 euler4 = maximum . filter assertPalindrome $ (*) <$>
          [999, 998 .. 100] <*>
          [999, 998 .. 100]
@@ -235,7 +236,7 @@ euler27 = maximum' [[length . takeWhile (assertPrime') $
 euler29 :: Int
 euler29 = length . nub $ [a^b | a <- [2 .. 100], b <- [2 .. 100]]
 
-euler30 :: (Integral a) => [a]
+euler30 :: [Int]
 euler30 = [x | x <- [2 ..], x == sum5p x]
     -- Manually break when necessary
     where sum5p x = sum [((x `mod` (10 ^ y)) `div` (10 ^ (y - 1))) ^ 5 |
@@ -258,7 +259,7 @@ factorial :: Integer -> Integer
 factorial 0 = 1
 factorial n | n > 0 = n * factorial (n-1)
 
-assertPandigital :: (Integral a) => a -> a -> Bool
+assertPandigital :: Int -> Int -> Bool
 assertPandigital x n = all (\y -> y `elem` extractDigits x) [1 .. n] &&
                        all (== 1) (map length . group . extractDigits $ x)
     where extractDigits x = [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) |
@@ -317,7 +318,7 @@ euler36 = sum . filter (\x -> assertPalindrome x &&
                               (reverse . decToBin $ x) == decToBin x) $ [1 .. 999999]
     where assertPalindrome x = (show x) == (reverse $ show x)
 
-euler37 :: (Integral a) => [a]
+euler37 :: [Int]
 euler37 = take 15 . filter (\x -> all assertPrime' (lrTruncate x)) $ primes
     where lrTruncate x = sort ((lTruncate . reverse . extractDigits $ x) ++
                                (rTruncate . reverse . extractDigits $ x))
@@ -446,7 +447,7 @@ euler53 :: Int
 euler53 = length . filter (> (10^6)) $
           [div (factorial' n r) (factorial (n - r)) | n <- [1 .. 100], r <- [1 .. n]]
 
-assertLychrel :: (Integral a) => [a] -> a -> Bool
+assertLychrel :: [Int] -> Int -> Bool
 assertLychrel x iter
     | iter == 0 = True
     | x == reverse x = False
@@ -472,7 +473,7 @@ euler57 = length . filter(\x -> length (show (head x)) >
                      iterate nextRoot2 $ [1, 2]
           nextRoot2 [a, b] = [b, (2 * b + a)]
 
-assertPermutation' :: (Integral a) => [a] -> Bool
+assertPermutation' :: [Int] -> Bool
 assertPermutation' a = all (== True) [(sort . extractDigits . head $ a) ==
                                       (sort . extractDigits $ x) | x <- tail a]
 
@@ -521,7 +522,7 @@ euler87 = length . takeWhile (<= 50000000) $ mooList
                                          p2 <- takeWhile (\y -> y^3 < x) primes,
                                          p3 <- takeWhile (\y -> y^4 < x) primes]]
 
-extractDigits :: (Integral a) => a -> [a]
+extractDigits :: (Integral a, Show a) => a -> [a]
 extractDigits x = [(x `mod` (10 ^ y)) `div` (10 ^ (y - 1)) |
                    y <- [1 .. length (show x)]]
 
@@ -547,7 +548,7 @@ euler94 lim = takeWhile (< lim) $ [2*x + y |
 euler97 :: [Integer]
 euler97 = take 10 . extractDigits $ (28433 * 2^7830457 + 1)
 
-assertNotBouncy :: (Integral a) => a -> Bool
+assertNotBouncy :: Int -> Bool
 assertNotBouncy x = (maximum y == head y) &&
                     (minimum y == last y) ||
                     (maximum y == last y) &&
