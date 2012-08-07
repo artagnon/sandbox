@@ -484,11 +484,14 @@ euler63 = (sum . map (\n -> length .
 
 -- euler67 in dedicated file
 
-{-
-euler80 :: (Integral a) => a
-euler80 = filter assertImperfectSquare [1..100]
-    where assertImperfectSquare x = ceiling
--}
+euler69 :: Integer
+-- Too slow!
+euler69 = maximumBy (comparing (\x -> (fromIntegral 1) / phiMultiple x)) $ [2 .. 1000]
+  where phiMultiple n = (foldl1' (*) [(fromIntegral (x - 1)) / (fromIntegral x) |
+                              x <- uniqPrimeFactorList n])
+        uniqPrimeFactorList = nub $ primeFactorList
+        primeFactorList n = primeFactors n . filterPrimes $ n
+        filterPrimes n = filter (\x -> n `mod` x == 0) primes
 
 euler71 :: [Integer]
 euler71 = maximum' . fracList $ 1000000
@@ -506,8 +509,21 @@ euler73 = length . filter (\x -> (3 * (head x) > (last x)) &&
     -- Compiled version finishes in 53s
     where fracList lim = [[x, y] | y <- [2 .. lim], x <- [1 .. y], gcd x y == 1]
 
+euler74 :: Int
+euler74 = length . filter (== 60) $ [facChainLen x | x <- [1000000, 999999 .. 2]]
+  where facDigits n = foldl1' (+) . map (factorial) $ extractDigits n
+        facChain x xs
+          | x `elem` xs = xs
+          | otherwise = facChain (facDigits x) (x:xs)
+        facChainLen x = length $ facChain x []
+
 euler76 :: Integer
 euler76 = denomCombs 100 [99, 98 .. 2]
+
+euler78 :: Integer
+-- Too slow!
+euler78 = head [n | n <- [2 .. ], p n `mod` 1000000 == 0]
+  where p n = denomCombs n [n, (n - 1) .. 2]
 
 euler85 :: Integer
 euler85 = last . takeWhile (\x -> x * (x + 1) `div` 2 < 2000000) $ [1 ..]
