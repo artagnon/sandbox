@@ -10,7 +10,8 @@ euler1 = sum . filter (\x -> (x `mod` 3 == 0 && x `mod` 5 == 0)) $ [1..999]
 
 assertPrime :: (Integral a) => a -> Bool
 assertPrime 1 = False
-assertPrime x = null . takeWhile (<= div x 2) . filter(\y -> x `mod` y == 0) $ [2..]
+assertPrime x = null . filter(\y -> x `mod` y == 0) .
+                takeWhile (\p -> p * p < x) $ 2 : [3, 5 ..]
 
 euler2 :: (Integral a) => a
 euler2 = sum . takeWhile (< 4000000) . filter even $ fiblist
