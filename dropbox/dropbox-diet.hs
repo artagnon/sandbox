@@ -1,18 +1,25 @@
-import Data.List
-import Control.Monad
-import Data.List.Ordered
+import Data.List.Ordered (minus)
+import Control.Monad (liftM, mapM_, replicateM)
 
 trialSum :: [(String, Int)] -> Bool
 trialSum xs = (sum . map snd $ xs) == 0
 
-pickOne = id
+slice :: Int -> Int -> [a] -> [a]
+slice from to xs = take (to - from + 1) (drop from xs)
 
-pickTwo xs = [[m, rest] | m <- xs, rest <- (xs `minus` [xs !! 0 .. m])]
-
-pickThree xs = filter (not . null) $ [map (\rest ->  m : rest) $ pickTwo (xs `minus` [xs !! 0 .. m]) | m <- xs]
+pick :: (Eq a, Num a, Ord b) => a -> [b] -> [[b]]
+pick 1 xs = [[x] | x <- xs]
+pick n xs = filter (not . null) . concat $
+            [map (\rest ->  xs !! m : rest) $
+             pick (n - 1) (xs `minus` (slice 0 m xs)) |
+             m <- [0 .. (length xs - 1)]]
 
 diet :: [(String, Int)] -> [String]
-diet = map fst
+diet xs = if not . null $ horse
+             then map fst . head $ horse
+          else
+            return "no solution"
+  where horse = filter (trialSum) . concat $ [pick n $ xs | n <- [1 .. length xs]]
 
 parseString :: String -> (String, Int)
 parseString str = let list = words str in (list !! 0, read $ list !! 1)
