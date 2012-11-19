@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <iostream>
+#include <cstring>
 #include <sstream>
 #include <vector>
 
@@ -8,7 +9,7 @@ using namespace std;
 struct Node {
 	int q1, q2, q3, q4;
 	int lbound, rbound;
-	Node *left, *right;
+	Node *parent, *left, *right;
 };
 
 struct Point {
@@ -20,10 +21,16 @@ struct Query {
 	int lbound, rbound;
 };
 
-Node *build_segment_tree(int lbound, int rbound, vector<Point *> &points) {
+struct qresult {
+	int q1, q2, q3, q4;
+} result;
+
+Node *build_segment_tree(int lbound, int rbound,
+			 Node *parent, vector<Point *> &points) {
 	Node *this_node = new Node;
 	this_node->lbound = lbound;
 	this_node->rbound = rbound;
+	this_node->parent = parent;
 	for (int i = lbound - 1; i < rbound; i++) {
 		if (points[i]->x and points[i]->y)
 			this_node->q1++;
@@ -36,14 +43,26 @@ Node *build_segment_tree(int lbound, int rbound, vector<Point *> &points) {
 	}
 	if (lbound != rbound) {
 		int mid = (rbound + lbound) / 2;
-		this_node->left = build_segment_tree(lbound, mid, points);
-		this_node->right = build_segment_tree(mid + 1, rbound, points);
+		this_node->left = build_segment_tree(lbound, mid,
+						     this_node, points);
+		this_node->right = build_segment_tree(mid + 1, rbound,
+						      this_node, points);
 	}
 	return this_node;
 }
 
-void reflect_x(Node *root) {
+void update_parent_chain(Node *root) {
+	for (Node *tnode = root->parent; tnode; tnode = tnode->parent) {
+		tnode->q1 = tnode->left->q1 + tnode->right->q1;
+		tnode->q2 = tnode->left->q2 + tnode->right->q2;
+		tnode->q3 = tnode->left->q3 + tnode->right->q3;
+		tnode->q4 = tnode->left->q4 + tnode->right->q4;
+	}
+}
+
+void reflect_x(Node *root, bool update_parent) {
 	int temp;
+
 	temp = root->q1;
 	root->q1 = root->q4;
 	root->q4 = temp;
@@ -51,86 +70,71 @@ void reflect_x(Node *root) {
 	root->q2 = root->q3;
 	root->q3 = temp;
 	
+	if (update_parent)
+		update_parent_chain(root);
+
 	if (root->left) {
-		reflect_x(root->left);
-		reflect_x(root->right);
+		reflect_x(root->left, false);
+		reflect_x(root->right, false);
 	}
 }
 
-void reflect_y(Node *root) {
+void reflect_y(Node *root, bool update_parent) {
 	int temp;
+
 	temp = root->q1;
 	root->q1 = root->q2;
 	root->q2 = temp;
 	temp = root->q4;
 	root->q4 = root->q3;
 	root->q3 = temp;
-	
+
+	if (update_parent)
+		update_parent_chain(root);
+
 	if (root->left) {
-		reflect_y(root->left);
-		reflect_y(root->right);
+		reflect_y(root->left, false);
+		reflect_y(root->right, false);
 	}
 }
 
-vector<int> return_q(Node *root) {
-	vector<int> to_return;
-	to_return.push_back(root->q1);
-	to_return.push_back(root->q2);
-	to_return.push_back(root->q3);
-	to_return.push_back(root->q4);
-	return to_return;
+void collect_q(Node *root, bool dummy) {
+	result.q1 += root->q1;
+	result.q2 += root->q2;
+	result.q3 += root->q3;
+	result.q4 += root->q4;
 }
 
 template <typename Function>
-vector<int> segment_exec(int lbound, int rbound, Node *root, Function f) {
+void segment_exec(int lbound, int rbound, Node *root, Function f) {
 	if (lbound == root->lbound and rbound == root->rbound)
-		return f(root);
+		f(root, true);
 	else if (lbound >= root->right->lbound)
-		return segment_exec(lbound, rbound, root->right, f);
+		segment_exec(lbound, rbound, root->right, f);
 	else if (rbound <= root->left->rbound)
-		return segment_exec(lbound, rbound, root->left, f);
+		segment_exec(lbound, rbound, root->left, f);
 	else {
-		vector<int> vec1, vec2;
-		vec1 = segment_exec(lbound, root->left->rbound, root->left, f);
-		vec2 = segment_exec(root->right->lbound, rbound, root->right, f);
-		vec1[0] += vec2[0];
-		vec1[1] += vec2[1];
-		vec1[2] += vec2[2];
-		vec1[3] += vec2[3];
-		return vec1;
-	}
-}
-
-template <typename Function>
-void segment_exec_void(int lbound, int rbound, Node *root, Function f) {
-	if (lbound == root->lbound and rbound == root->rbound)
-		f(root);
-	else if (lbound >= root->right->lbound)
-		segment_exec_void(lbound, rbound, root->right, f);
-	else if (rbound <= root->left->rbound)
-		segment_exec_void(lbound, rbound, root->left, f);
-	else {
-		segment_exec_void(lbound, root->left->rbound, root->left, f);
-		segment_exec_void(root->right->lbound, rbound, root->right, f);
+		segment_exec(lbound, root->left->rbound, root->left, f);
+		segment_exec(root->right->lbound, rbound, root->right, f);
 	}
 }
 
 void execute_query(Query *this_query, Node *root) {
-	vector<int> result;
 	switch (this_query->type) {
 	case 'X':
-		segment_exec_void(this_query->lbound,
-				  this_query->rbound, root, reflect_x);
+		segment_exec(this_query->lbound,
+			     this_query->rbound, root, reflect_x);
 		break;
 	case 'Y':
-		segment_exec_void(this_query->lbound,
-				  this_query->rbound, root, reflect_y);
+		segment_exec(this_query->lbound,
+			     this_query->rbound, root, reflect_y);
 		break;
 	case 'C':
-		result = segment_exec(this_query->lbound,
-				      this_query->rbound, root, return_q);
-		cout << result[0] << " " << result[1] << " " <<
-			result[2] << " " << result[3] << endl;
+		memset(&result, 0, sizeof(struct qresult));
+		segment_exec(this_query->lbound,
+			     this_query->rbound, root, collect_q);
+		cout << result.q1 << " " << result.q2 << " " <<
+			result.q3 << " " << result.q4 << endl;
 		break;
 	}
 }
@@ -155,7 +159,7 @@ int main() {
 			this_query->lbound >> this_query->rbound;
 		queries.push_back(this_query);
 	}
-	Node *root = build_segment_tree(1, n_points, points);
+	Node *root = build_segment_tree(1, n_points, NULL, points);
 	for (vector<Query *>::iterator i = queries.begin();
 	     i != queries.end(); i++)
 		execute_query(*i, root);
