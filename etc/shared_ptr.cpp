@@ -46,8 +46,7 @@ public:
 			delete data;
 		}
 	}
-private:	
+private:
 	T* data;
 	int* nRefCount;
 };
-
