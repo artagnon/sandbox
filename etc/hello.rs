@@ -51,7 +51,7 @@ fn main () {
     let mut stack: ~[int] = ~[1, 2, 3];
     let mapper = |el: &int| *el * 2;
     stack = map_closure(stack, mapper);
-    for stack.each |el: &int| {
+    for stack.iter().advance |el: &int| {
         println(fmt!("%d", *el));
     }
 
@@ -83,7 +83,8 @@ fn main () {
     }
 
     let stack2: ~[int] = ~[4, 5, 6];
-    for std::vec::zip(stack, stack2).each |el| {
+    let zstack2 = std::vec::zip(stack, stack2);
+    for zstack2.iter().advance |el| {
         println(fmt!("%?", *el));
     }
 
