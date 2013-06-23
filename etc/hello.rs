@@ -26,7 +26,7 @@ struct Point {
 }
 
 fn vec_head<T: Copy>(vector: &[T]) -> T {
-    vector[0]
+    copy(vector[0])
 }
 
 impl Point {
