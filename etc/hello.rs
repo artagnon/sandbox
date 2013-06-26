@@ -1,3 +1,5 @@
+extern mod extra;
+
 fn printer (x: &int) -> int {
     // x (borrowed pointer) is frozen
     println(fmt!("hello? %d", *x));
@@ -98,4 +100,13 @@ fn main () {
     destructive_change(x);
     println("Destructive change::");
     println(fmt!("x = %d", *x));
+
+    let mut pq = extra::priority_queue::PriorityQueue::new();
+    pq.push(5);
+    pq.push(6);
+    pq.push(3);
+    println("Priority queue::");
+    for pq.iter().advance |el| {
+        println(fmt!("%?", *el));
+    }
 }
