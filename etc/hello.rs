@@ -78,7 +78,7 @@ fn main () {
     let mut map = std::hashmap::HashMap::new();
     map.find_or_insert("moo", 3);
     map.find_or_insert("foo", 4);
-    for map.each |k, v| {
+    for map.iter().advance |(k, v)| {
         println(fmt!("%s => %d", *k, *v));
     }
 
