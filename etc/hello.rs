@@ -44,6 +44,7 @@ fn destructive_change(x: &mut int) {
 
 fn main () {
     let mut count: ~int = ~0;
+    println(fmt!("printer function::"));
     while *count < 3 {
         *count = printer(count);
     }
@@ -51,10 +52,12 @@ fn main () {
     let mut stack: ~[int] = ~[1, 2, 3];
     let mapper = |el: &int| *el * 2;
     stack = map_closure(stack, mapper);
+    println(fmt!("map closure::"));
     for stack.iter().advance |el: &int| {
         println(fmt!("%d", *el));
     }
 
+    println(fmt!("each_closure without for::"));
     each_closure([2, 4, 8, 5, 16], |n| {
         if *n % 2 != 0 {
             println(fmt!("found odd number! %d", *n));
@@ -63,6 +66,7 @@ fn main () {
     });
 
 
+    println(fmt!("each_closure with for::"));
     // for can be used only with stack closures
     for each_closure([2, 4, 8, 17, 32]) |n| {
         if (*n % 2 != 0) {
@@ -73,22 +77,25 @@ fn main () {
     let location = Point::new(10, 20);
     location.print();
 
-    println(fmt!("HEAD: %d", vec_head(stack)));
+    println(fmt!("Vector HEAD:: %d", vec_head(stack)));
 
     let mut map = std::hashmap::HashMap::new();
     map.find_or_insert("moo", 3);
     map.find_or_insert("foo", 4);
+    println("HashMap::");
     for map.iter().advance |(k, v)| {
         println(fmt!("%s => %d", *k, *v));
     }
 
     let stack2: ~[int] = ~[4, 5, 6];
     let zstack2 = std::vec::zip(stack, stack2);
+    println("Zipped vector::");
     for zstack2.iter().advance |el| {
         println(fmt!("%?", *el));
     }
 
     let mut x = ~4;
     destructive_change(x);
+    println("Destructive change::");
     println(fmt!("x = %d", *x));
 }
