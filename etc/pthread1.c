@@ -44,8 +44,10 @@ int main(int argc, char *argv[])
 	int stack_size;
 	void *res;
 
-	/* The "-s" option specifies a stack size for our threads */
+	if (argc < 2)
+		goto usage;
 
+	/* The "-s" option specifies a stack size for our threads */
 	stack_size = -1;
 	while ((opt = getopt(argc, argv, "s:")) != -1) {
 		switch (opt) {
@@ -54,7 +56,8 @@ int main(int argc, char *argv[])
 			break;
 
 		default:
-			fprintf(stderr, "Usage: %s [-s stack-size] arg...\n",
+usage:
+			fprintf(stderr, "Usage: %s [-s stack-size] <arg>...\n",
 				argv[0]);
 			exit(EXIT_FAILURE);
 		}
