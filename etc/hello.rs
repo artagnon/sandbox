@@ -27,8 +27,8 @@ struct Point {
     y : int
 }
 
-fn vec_head<T: Copy>(vector: &[T]) -> T {
-    copy(vector[0])
+fn vec_head<T>(vector: &[T]) -> T {
+    vector[0]
 }
 
 impl Point {
@@ -55,7 +55,7 @@ fn main () {
     let mapper = |el: &int| *el * 2;
     stack = map_closure(stack, mapper);
     println(fmt!("map closure::"));
-    for stack.iter().advance |el: &int| {
+    for el in stack {
         println(fmt!("%d", *el));
     }
 
@@ -70,7 +70,7 @@ fn main () {
 
     println(fmt!("each_closure with for::"));
     // for can be used only with stack closures
-    for each_closure([2, 4, 8, 17, 32]) |n| {
+    for n in each_closure([2, 4, 8, 17, 32]) {
         if (*n % 2 != 0) {
             println(fmt!("odd number %d", *n));
             break;
@@ -85,14 +85,14 @@ fn main () {
     map.find_or_insert("moo", 3);
     map.find_or_insert("foo", 4);
     println("HashMap::");
-    for map.iter().advance |(k, v)| {
+    for (k, v) in map {
         println(fmt!("%s => %d", *k, *v));
     }
 
     let stack2: ~[int] = ~[4, 5, 6];
     let zstack2 = std::vec::zip(stack, stack2);
     println("Zipped vector::");
-    for zstack2.iter().advance |el| {
+    for el in zstack2 {
         println(fmt!("%?", *el));
     }
 
@@ -106,7 +106,7 @@ fn main () {
     pq.push(6);
     pq.push(3);
     println("Priority queue::");
-    for pq.iter().advance |el| {
+    for el in pq {
         println(fmt!("%?", *el));
     }
 }
