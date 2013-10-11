@@ -1,5 +1,7 @@
 SCAL_DEPS := scal.cpp shared_ptr.cpp
 
+all:: scal hello jit1 play pthread1 timer1
+
 scal: $(SCAL_DEPS)
 	g++ -o $@ $(SCAL_DEPS)
 
