@@ -6,9 +6,6 @@
 #include <errno.h>
 #include <ctype.h>
 
-#define handle_error_en(en, msg)					\
-	do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
-
 #define handle_error(msg)					\
 	do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
@@ -41,7 +38,7 @@ static void *thread_start(void *arg)
 
 int main(int argc, char *argv[])
 {
-	int s, tnum, opt, num_threads;
+	int tnum, opt, num_threads;
 	struct thread_info *tinfo;
 	pthread_attr_t attr;
 	int stack_size;
@@ -67,14 +64,14 @@ int main(int argc, char *argv[])
 
 	/* Initialize thread creation attributes */
 
-	s = pthread_attr_init(&attr);
-	if (s != 0)
-		handle_error_en(s, "pthread_attr_init");
+	errno = pthread_attr_init(&attr);
+	if (errno != 0)
+		handle_error("pthread_attr_init");
 
 	if (stack_size > 0) {
-		s = pthread_attr_setstacksize(&attr, stack_size);
-		if (s != 0)
-			handle_error_en(s, "pthread_attr_setstacksize");
+		errno = pthread_attr_setstacksize(&attr, stack_size);
+		if (errno != 0)
+			handle_error("pthread_attr_setstacksize");
 	}
 
 	/* Allocate memory for pthread_create() arguments */
@@ -92,25 +89,25 @@ int main(int argc, char *argv[])
 		/* The pthread_create() call stores the thread ID into
 		   corresponding element of tinfo[] */
 
-		s = pthread_create(&tinfo[tnum].thread_id, &attr,
+		errno = pthread_create(&tinfo[tnum].thread_id, &attr,
 				&thread_start, &tinfo[tnum]);
-		if (s != 0)
-			handle_error_en(s, "pthread_create");
+		if (errno != 0)
+			handle_error("pthread_create");
 	}
 
 	/* Destroy the thread attributes object, since it is no
 	   longer needed */
 
-	s = pthread_attr_destroy(&attr);
-	if (s != 0)
-		handle_error_en(s, "pthread_attr_destroy");
+	errno = pthread_attr_destroy(&attr);
+	if (errno != 0)
+		handle_error("pthread_attr_destroy");
 
 	/* Now join with each thread, and display its returned value */
 
 	for (tnum = 0; tnum < num_threads; tnum++) {
-		s = pthread_join(tinfo[tnum].thread_id, &res);
-		if (s != 0)
-			handle_error_en(s, "pthread_join");
+		errno = pthread_join(tinfo[tnum].thread_id, &res);
+		if (errno != 0)
+			handle_error("pthread_join");
 
 		printf("Joined with thread %d; returned value was %s\n",
 			tinfo[tnum].thread_num, (char *) res);
