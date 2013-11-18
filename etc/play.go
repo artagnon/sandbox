@@ -32,7 +32,7 @@ func main() {
 		fmt.Printf("> ")
 		reader := bufio.NewReader(os.Stdin)
 		line, err := reader.ReadString('\n')
-		strings.TrimRight(line, "\t\r\n")
+		line = strings.TrimRight(line, "\t\r\n")
                 if err != nil {
                         fmt.Println("Read error", err.Error())
                         break
