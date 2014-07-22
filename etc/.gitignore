@@ -5,3 +5,6 @@ play
 playd
 timer1
 pthread1
+llvm_test.cmx
+llvm_test.cmi
+llvm_test
