@@ -8,3 +8,7 @@ pthread1
 llvm_test.cmx
 llvm_test.cmi
 llvm_test
+qsort
+heapsort
+minstack
+dp-twoends
