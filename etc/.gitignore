@@ -1,3 +1,4 @@
+*.dSYM/
 hello
 jit1
 scal
@@ -12,3 +13,5 @@ qsort
 heapsort
 minstack
 dp-twoends
+linear-partition
+
