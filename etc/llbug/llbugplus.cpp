@@ -19,19 +19,35 @@
 using namespace llvm;
 
 int main() {
+	LLVMInitializeNativeTarget();
+	LLVMInitializeNativeAsmPrinter();
+	LLVMInitializeNativeAsmParser();
+
 	LLVMContext &Context = getGlobalContext();
 	IRBuilder<> Builder(Context);
 	std::unique_ptr<Module> Owner = make_unique<Module>("simple_module", Context);
 	Module *M = Owner.get();
+
 	Function *F = Function::Create(TypeBuilder<int32_t(void), false>::get(Context),
-				       GlobalValue::ExternalLinkage, "ooo1", M);
+				       GlobalValue::ExternalLinkage, "scramble", M);
 	BasicBlock *BB = BasicBlock::Create(Context, "entry", F);
 	Builder.SetInsertPoint(BB);
-	Builder.CreateRet(ConstantInt::get(Context, APInt(32, 42)));
-	M->dump();
+	Builder.CreateRet(ConstantInt::get(Context, APInt(32, 24)));
 
+	F = Function::Create(TypeBuilder<int32_t(void), false>::get(Context),
+				       GlobalValue::ExternalLinkage, "ooo1", M);
+	BB = BasicBlock::Create(Context, "entry", F);
+	Builder.SetInsertPoint(BB);
+	Builder.CreateRet(ConstantInt::get(Context, APInt(32, 42)));
+
+	M->dump();
 	ExecutionEngine *EE = EngineBuilder(std::move(Owner)).create();
 	assert(EE != NULL && "error creating MCJIT with EngineBuilder");
-	std::cout << EE->getFunctionAddress("ooo1") << std::endl;
+	union {
+		uint64_t raw;
+		int (*usable)();
+	} functionPointer;
+	functionPointer.raw = EE->getFunctionAddress("ooo1");
+	std::cout << functionPointer.usable() << std::endl;
 	return 0;
 }
