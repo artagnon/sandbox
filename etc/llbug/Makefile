@@ -4,7 +4,7 @@ llbugc: llbug.cpp
 	clang++ -g -O1 $< `llvm-config --cxxflags --ldflags --system-libs --libs core analysis native support mcjit` -o llbugc
 
 llbugcpp: llbugplus.cpp
-	clang++ -g -O1 $< `llvm-config --cxxflags --ldflags --system-libs --libs core bitwriter analysis native support mcjit` -o llbugcpp
+	clang++ -g -O1 $< `llvm-config --cxxflags --ldflags --system-libs --libs core native mcjit` -o llbugcpp
 
 llbugml: export OCAMLPATH = /Users/artagnon/src/llvm/Debug+Asserts/lib/ocaml
 llbugml: llbug.ml

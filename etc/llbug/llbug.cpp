@@ -63,6 +63,6 @@ int main()
 	functionPointer.raw = LLVMGetFunctionAddress(Engine, "ooo1");
 	assert(functionPointer.raw != 0 && "NULL functionPointer");
 	std::cout << functionPointer.usable() << std::endl;
-    
+
 	return 0;
 }
