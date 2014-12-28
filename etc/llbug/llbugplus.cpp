@@ -5,7 +5,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/TypeBuilder.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
-#include "llvm/BitCode/BitStreamWriter.h"
+#include "llvm/Bitcode/BitstreamWriter.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/MCJIT.h"
