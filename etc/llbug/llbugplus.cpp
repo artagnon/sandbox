@@ -25,6 +25,9 @@
 
 using namespace llvm;
 
+GCMetadataPrinter::GCMetadataPrinter() { }
+GCMetadataPrinter::~GCMetadataPrinter() { }
+
 namespace {
 	class RgcPrinter : public GCMetadataPrinter {
 	public:
