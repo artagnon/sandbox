@@ -1,0 +1,3 @@
+{"query-id":"1","query":"vfs-add","args":{"filename":"Test.fst","contents":"module Test\n\nlet rec fib n =\n  if n <= 1 then 1 else fib (n - 1) + fib (n - 2)\n"}}
+{"query-id":"2","query":"push","args":{"kind":"lax","code":"module Test\n\nlet rec fib n =\n  if n <= 1 then 1 else fib (n - 1) + fib (n - 2)\n","line":1,"column":0}}
+{"query-id":"3","query":"autocomplete","args":{"partial-symbol":"fi"}}
