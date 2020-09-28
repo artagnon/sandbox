@@ -1,6 +1,0 @@
-Content-Length: 1052
-
-{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":"file:///Users/artagnon/src/sandbox/fst/Play.fst","languageId":"fstar","version":1,"text":"module Play\n\nopen FStar.Mul\n\nval factorial : x:nat -> Tot nat\nlet rec factorial n =\n  if n = 0 then 1 else n * (factorial (n - 1))\n\nval length: list 'a -> Tot nat\nlet rec length l = match l with\n  | [] -> 0\n  | _ :: tl -> 1 + length tl\n\nlet rec append l1 l2 = match l1 with\n  | [] -> l2\n  | hd :: tl -> hd :: append tl l2\n\nlet rec sum_rec (n:nat) = if n > 0 then n + sum_rec (n-1) else 0\n\nlet sum_tot (n:nat) = ((n+1) * n) / 2\n\nlet rec sum_rec_correct (n:nat) : Lemma (sum_rec n = sum_tot n) =\n  admit() (* replace this admit by a real proof *)\n\nopen FStar.Seq\n\nval index' : ns:seq nat -> i:nat{i < length ns} -> nat\nlet index' ns i =\n  let f (ns:seq nat) : nat =\n      index ns i in\n  f ns\n\n// TypeScript lets you write JavaScript the way you really want to.\n// TypeScript is a typed superset of JavaScript that compiles to plain JavaScript."}}}
-Content-Length: 182
-
-{"jsonrpc":"2.0","id":1,"method":"textDocument/definition","params":{"textDocument":{"uri":"file:///Users/artagnon/src/sandbox/fst/Play.fst"},"position":{"line":21,"character":46}}}
