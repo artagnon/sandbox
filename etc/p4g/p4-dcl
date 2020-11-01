@@ -1,0 +1,7 @@
+#!/bin/bash
+
+fixes=$(p4 fixes -c $1 | cut -f1 -d' ')
+if [[ -n ${fixes} ]]; then
+	p4 fix -d -c $1 ${fixes}
+fi
+p4 change -d $1

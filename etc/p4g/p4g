@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+
+"""
+Emulates the git alias system in p4
+"""
+
+import os
+import sys
+import configparser
+from os.path import expanduser
+
+basecommand = "p4"
+
+def which(program):
+    """Because I don't have Python 3.3 and shutils.which"""
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            path = path.strip('"')
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+    return None
+
+def main():
+    dispatch_args = sys.argv
+    dispatch_args[0] = basecommand
+    if len(dispatch_args) == 1:
+        subcommand = "status"
+        dispatch_args.append(subcommand)
+    else:
+        subcommand = dispatch_args[1]
+    config = configparser.ConfigParser()
+    with open(expanduser("~/.p4config"), "r") as configfile:
+        config.read_file(configfile)
+    # first expand alias
+    dispatch_expand = config["alias"].get(subcommand, subcommand).split(' ')
+    dispatch_args = [dispatch_args[0]] + dispatch_expand + dispatch_args[2:]
+
+    # now look for subexecutable
+    subexec = which("{}-{}".format(dispatch_args[0], dispatch_args[1]))
+    if subexec:
+        dispatch_args = [subexec] + dispatch_args[2:]
+    os.execvp(dispatch_args[0], dispatch_args)
+
+main()

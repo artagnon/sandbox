@@ -1,0 +1,3 @@
+#!/bin/sh
+
+P4DIFF=colordiff p4 diff -du | less -R
