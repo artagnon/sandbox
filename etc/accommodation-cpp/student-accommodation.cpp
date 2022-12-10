@@ -1,69 +1,61 @@
 #include "student-accommodation.hpp"
 #include <algorithm>
+#include <iterator>
+#include <numeric>
 #include <set>
-#include <unordered_map>
 
-// Simple disjoint-set data structure with makeSet, findSet and unionSet member
-// functions
-class DisjointSet {
-  std::unordered_map<int, int> parent;
-
-public:
-  void makeSet(std::set<int> &init) {
-    for (auto i : init) {
-      parent[i] = i;
-    }
-  }
-
-  // Simple recursive find that terminates at parent
-  int findSet(int needle) {
-    if (parent[needle] == needle)
-      return needle;
-    return findSet(parent[needle]);
-  }
-
-  void unionSet(int m, int n) { parent[findSet(m)] = findSet(n); }
-};
-
+// A simple class for generating permutations given N vertices, and legalizing
+// them given the possible legal edges
 class PermutationGenerator {
-  std::vector<std::vector<int>> permutations;
+  std::vector<std::vector<std::pair<int, int>>> permutations;
 
 public:
-  void generate(std::vector<int> arr, size_t sz) {
+  // Heap's algorithm for generating permutations
+  // Time complexity: O(V!)
+  void generate(std::vector<std::pair<int, int>> arr, size_t sz) {
     if (sz == 1) {
       permutations.push_back(arr);
       return;
     }
 
-    for (int i = 0; i < sz; i++) {
-      generate(arr, sz - 1);
+    generate(arr, sz - 1);
 
+    for (size_t i = 0; i < sz - 1; i++) {
       if (sz % 2 == 1)
-        std::swap(arr[0], arr[sz - 1]);
-
+        std::swap(arr[0].second, arr[sz - 1].second);
       else
-        std::swap(arr[i], arr[sz - 1]);
+        std::swap(arr[i].second, arr[sz - 1].second);
+      generate(arr, sz - 1);
     }
   }
 
-  operator std::vector<std::vector<int>>() { return permutations; }
+  // Remove the edges that are not legal and return them
+  // Time complexity: O(V!)
+  std::vector<std::vector<std::pair<int, int>>>
+  legalize(const std::set<std::pair<int, int>> &edges) {
+    // Erase unless all of the edges satisfy one of the following conditions:
+    // 1. The edge is a self-edge
+    // 2. The edge is legal
+    std::erase_if(permutations, [&edges](auto permutation) {
+      return !std::all_of(
+          permutation.begin(), permutation.end(), [&edges](auto edge) {
+            return (edge.first == edge.second) || edges.count(edge);
+          });
+    });
+    return permutations;
+  }
 };
 
-// A person is a vertex in the graph, and assymmetric friend-relationships are
-// directed edges in the graph. The weight of each graph edge is given by
-// distances. The objective is to span the graph, minimizing the weight of the
-// spanning tree: in other words, we need something like a minimal spanning
-// tree. The solution is inspired by Kruskal's algorithm.
-//
-// Time complexity: O(E log V), where E is the number of edges and V is the
-// number of vertices.
+// We have a directed weighted graph (vertices are students, and edges are
+// friendship relations), which is combined with a permutation problem (since no
+// two students can be assigned the same room). We present an optimal solution
+// to the problem, albeit in O(V!)
 std::map<int, int>
 arrangement(const std::vector<std::pair<int, int>> &friends,
             const std::map<std::pair<int, int>, double> &distances) {
-
-  // Create a vector of edges, that drops the const of friends, so we can sort
-  // the edges by weight
-  std::vector<std::pair<int, int>> edges = friends;
+  // Copy out the edges into an std::set for O(1) lookup
+  std::set<std::pair<int, int>> edges;
+  std::copy(friends.begin(), friends.end(), std::inserter(edges, edges.end()));
 
   // De-duplicate the vertices
   std::set<int> vertices;
@@ -72,72 +64,54 @@ arrangement(const std::vector<std::pair<int, int>> &friends,
     vertices.insert(snd);
   }
 
-  // Initialize the forests by putting each vertex in its own forest
-  DisjointSet forest;
-  forest.makeSet(vertices);
+  // Initialize the permutations
+  std::vector<std::pair<int, int>> permutationInit;
+  for (auto vertex : vertices)
+    permutationInit.push_back(std::make_pair(vertex, vertex));
 
-  // Use a multimap for the maximal spanning tree, with multiple possible
-  // entries for each key
-  std::multimap<int, int> mst;
+  // Use the permutation generator to generate and legalize permutations
+  PermutationGenerator gen;
+  gen.generate(permutationInit, permutationInit.size());
+  auto legalEdgesPermutation = gen.legalize(edges);
 
-  // Sort the edges by weight
-  std::sort(edges.begin(), edges.end(), [&distances](auto edge1, auto edge2) {
-    return distances.at(edge1) < distances.at(edge2);
-  });
+  // We have two cost models
+  // displacementCost computes the total cost of displacement, with the intent
+  // of minimizing this cost
+  auto displacementCost =
+      [&distances](const std::vector<std::pair<int, int>> &edgeVector) {
+        return std::accumulate(edgeVector.begin(), edgeVector.end(), 0,
+                               [&distances](int sum, auto edge) {
+                                 return sum + distances.at(edge);
+                               });
+      };
 
-  // For each edge in the graph, use our DisjointSet data structure to perform
-  // findSet and unionSet.
-  for (auto [fst, snd] : edges) {
-    // If the subforest that contains the first node is not the same subforest
-    // that contains the second node, add to minimal spanning tree, and merge
-    // the two forests
-    if (forest.findSet(fst) != forest.findSet(snd)) {
-      mst.insert(std::make_pair(fst, snd));
-      forest.unionSet(fst, snd);
-    }
-  }
+  // shuffleCost computes the total cost of a non-self-edge, with the intent of
+  // maximizing this cost
+  auto shuffleCost = [](const std::vector<std::pair<int, int>> &edgeVector) {
+    return std::accumulate(
+        edgeVector.begin(), edgeVector.end(), 0,
+        [](int sum, auto edge) { return sum + (edge.first != edge.second); });
+  };
 
-  // First, copy the non-duplicates in the multimap into allocation to return
-  std::map<int, int> allocation;
-  std::copy_if(mst.begin(), mst.end(),
-               std::inserter(allocation, allocation.end()),
-               [&mst](auto kv) { return mst.count(kv.first) == 1; });
+  // Sort the permutations by the minimum total weight
+  // Time complexity: O(V)
+  std::sort(legalEdgesPermutation.begin(), legalEdgesPermutation.end(),
+            [&displacementCost](auto edges1, auto edges2) {
+              return displacementCost(edges1) < displacementCost(edges2);
+            });
 
-  // Find the duplicates in the multimap
-  std::vector<std::pair<int, int>> duplicates;
-  std::copy_if(mst.begin(), mst.end(), std::back_inserter(duplicates),
-               [&mst](auto kv) { return mst.count(kv.first) > 1; });
-
-  // Now, sort the duplicates by weight of edges
-  std::sort(
-      duplicates.begin(), duplicates.end(),
-      [&edges, &distances](auto kv1, auto kv2) {
-        bool backEdge1 =
-            std::find(edges.begin(), edges.end(),
-                      std::make_pair(kv1.second, kv1.first)) == edges.end();
-        bool backEdge2 =
-            std::find(edges.begin(), edges.end(),
-                      std::make_pair(kv2.second, kv2.first)) == edges.end();
-
-        if (backEdge1 && !backEdge2)
-          return true;
-        else if (backEdge2 && !backEdge1)
-          return false;
-
-        return distances.at(kv1) < distances.at(kv2);
+  // Now pick the greatest shuffle in the sorted legal permutations, as defined
+  // by the cost model
+  // Time complexity: O(V)
+  auto maxEl = std::max_element(
+      legalEdgesPermutation.begin(), legalEdgesPermutation.end(),
+      [&shuffleCost](auto edges1, auto edges2) {
+        return shuffleCost(edges1) < shuffleCost(edges2);
       });
 
-  // Fill the allocation map with the lowest weight duplicates
-  for (auto [k, v] : duplicates) {
-    if (!allocation.count(k))
-      allocation[k] = v;
-  }
-
-  // To finish the problem, let unallocated students sit in place
-  for (auto v : vertices) {
-    if (!allocation.count(v))
-      allocation[v] = v;
-  }
-
+  // Prepare to return an std::map
+  std::map<int, int> allocation;
+  for (auto [k, v] : *maxEl)
+    allocation[k] = v;
   return allocation;
 }
