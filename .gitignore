@@ -4,3 +4,4 @@
 *.hi
 *.out
 __pycache__/
+build/
