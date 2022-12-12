@@ -188,10 +188,11 @@ void pipeline1(const CustomerBatch &in, SubqueryBatch &out) {
     });
   });
   std::erase_if(selectRows, [&in](auto row) { return in.c_acctbal[row] < 0; });
-  size_t sumbal = 0;
-  std::for_each(selectRows.begin(), selectRows.end(),
-                [&in, &sumbal](auto row) { sumbal += in.c_acctbal[row]; });
-  auto avgbal = sumbal / selectRows.size();
+  auto avgbal = std::accumulate(selectRows.begin(), selectRows.end(), 0,
+                                [&in](int sum, auto row) {
+                                  return sum + in.c_acctbal[row];
+                                }) /
+                selectRows.size();
   std::erase_if(selectRows, [&in, &avgbal](auto row) {
     return in.c_acctbal[row] < avgbal;
   });
@@ -200,6 +201,11 @@ void pipeline1(const CustomerBatch &in, SubqueryBatch &out) {
                        in.c_mktsegmentData.data() + in.c_mktsegment[row].first +
                            in.c_mktsegment[row].second} != "BUILDING";
   });
+
+  out.numRows = selectRows.size();
+  out.c_acctbal.reserve(out.numRows);
+  out.cntrycode.reserve(out.numRows);
+
   std::for_each(selectRows.begin(), selectRows.end(),
                 [&in, &out, offset{0}](auto row) mutable {
                   auto toInsert = std::string{
@@ -211,7 +217,6 @@ void pipeline1(const CustomerBatch &in, SubqueryBatch &out) {
                   out.c_acctbal.push_back(in.c_acctbal[row]);
                   offset += toInsert.size();
                 });
-  out.numRows = selectRows.size();
 }
 
 // Pipeline to process:
@@ -242,15 +247,12 @@ void pipeline2(const SubqueryBatch &in, OutputBatch &out) {
   out.numcust.reserve(out.numRows);
   out.totalacctbal.reserve(out.numRows);
 
-  for (auto it = cntryCodeGrps.begin(); it != cntryCodeGrps.end(); ++it) {
-    auto idx = std::distance(cntryCodeGrps.begin(), it);
-    auto rows = it->second;
-    out.numcust.push_back(0);
-    out.totalacctbal.push_back(0);
-    std::for_each(rows.begin(), rows.end(), [&in, &out, &idx](auto row) {
-      out.totalacctbal[idx] += in.c_acctbal[row];
-      out.numcust[idx] += 1;
-    });
+  for (const auto &[key, rows] : cntryCodeGrps) {
+    out.totalacctbal.push_back(std::accumulate(
+        rows.begin(), rows.end(), 0.0,
+        [&in](double sum, auto row) { return sum + in.c_acctbal[row]; }));
+    out.numcust.push_back(std::accumulate(
+        rows.begin(), rows.end(), 0, [](int sum, auto) { return sum + 1; }));
   }
 }
 
