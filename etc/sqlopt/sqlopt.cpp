@@ -61,10 +61,14 @@
 //===----------------------------------------------------------------------===//
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstdint>
 #include <iostream>
 #include <limits>
+#include <map>
+#include <numeric>
+#include <ranges>
 #include <vector>
 
 //===------------------------------------------------------------------------===
@@ -173,7 +177,41 @@ namespace {
 //   and c_mktsegment = "BUILDING"
 // ```
 void pipeline1(const CustomerBatch &in, SubqueryBatch &out) {
-  // ToDo
+  std::vector<unsigned> selectRows(in.numRows - 1);
+  std::generate_n(selectRows.begin(), in.numRows - 1,
+                  [n{0}]() mutable { return n++; });
+  std::erase_if(selectRows, [&in](auto row) {
+    auto match = {"13", "31", "23", "29", "30", "18", "17"};
+    return std::none_of(match.begin(), match.end(), [&in, &row](auto m) {
+      return m[0] == in.c_phoneData[in.c_phone[row].first] &&
+             m[1] == in.c_phoneData[in.c_phone[row].first + 1];
+    });
+  });
+  std::erase_if(selectRows, [&in](auto row) { return in.c_acctbal[row] < 0; });
+  size_t sumbal = 0;
+  std::for_each(selectRows.begin(), selectRows.end(),
+                [&in, &sumbal](auto row) { sumbal += in.c_acctbal[row]; });
+  auto avgbal = sumbal / selectRows.size();
+  std::erase_if(selectRows, [&in, &avgbal](auto row) {
+    return in.c_acctbal[row] < avgbal;
+  });
+  std::erase_if(selectRows, [&in](auto row) {
+    return std::string{in.c_mktsegmentData.data() + in.c_mktsegment[row].first,
+                       in.c_mktsegmentData.data() + in.c_mktsegment[row].first +
+                           in.c_mktsegment[row].second} != "BUILDING";
+  });
+  std::for_each(selectRows.begin(), selectRows.end(),
+                [&in, &out, offset{0}](auto row) mutable {
+                  auto toInsert = std::string{
+                      in.c_phoneData.data() + in.c_phone[row].first,
+                      in.c_phoneData.data() + in.c_phone[row].first + 2};
+                  std::copy(toInsert.begin(), toInsert.end(),
+                            std::back_inserter(out.cntrycodeData));
+                  out.cntrycode.emplace_back(offset, toInsert.size());
+                  out.c_acctbal.push_back(in.c_acctbal[row]);
+                  offset += toInsert.size();
+                });
+  out.numRows = selectRows.size();
 }
 
 // Pipeline to process:
@@ -190,7 +228,30 @@ void pipeline1(const CustomerBatch &in, SubqueryBatch &out) {
 //   cntrycode
 // ```
 void pipeline2(const SubqueryBatch &in, OutputBatch &out) {
-  // ToDo
+  std::map<std::string, std::vector<int>> cntryCodeGrps;
+
+  std::for_each(
+      in.cntrycode.begin(), in.cntrycode.end(), [&in, &cntryCodeGrps](auto p) {
+        auto cntryCode =
+            std::string{in.cntrycodeData.begin() + p.first,
+                        in.cntrycodeData.begin() + p.first + p.second};
+        cntryCodeGrps[cntryCode].push_back(p.first);
+      });
+
+  out.numRows = cntryCodeGrps.size();
+  out.numcust.reserve(out.numRows);
+  out.totalacctbal.reserve(out.numRows);
+
+  for (auto it = cntryCodeGrps.begin(); it != cntryCodeGrps.end(); ++it) {
+    auto idx = std::distance(cntryCodeGrps.begin(), it);
+    auto rows = it->second;
+    out.numcust.push_back(0);
+    out.totalacctbal.push_back(0);
+    std::for_each(rows.begin(), rows.end(), [&in, &out, &idx](auto row) {
+      out.totalacctbal[idx] += in.c_acctbal[row];
+      out.numcust[idx] += 1;
+    });
+  }
 }
 
 bool verifyOutput(OutputBatch &batch) {
