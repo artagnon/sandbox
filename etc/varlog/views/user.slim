@@ -1,0 +1,35 @@
+doctype html
+html
+  head
+    title varlog: #{@username}
+    meta charset="UTF-8"
+    meta name="author" content="Ramkumar Ramachandra"
+    link rel="stylesheet" type="text/css" href="/css/screen.css"
+    link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans"
+    link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Droid+Sans+Mono"
+    script src="/js/jquery-1.9.1.js"
+    script src="/js/jquery-serializeobject.js"
+    script src="/js/underscore.js"
+    script src="/js/backbone.js"
+    script src="/js/main.js"
+  body
+    div class="wrapper"
+      header
+        h1 varlog: #{@username}
+      article
+        | This is a list of tracks you've been listening to.
+      div class="music out" id="toEdit"
+        - @streamentries.each do |entry|
+          div class="music entry"
+            | #{entry.title} | #{entry.album} | #{entry.artist}
+      form id="musicform" method="post" action="/#{@username}/new"
+        span class="formlabel"
+          | Title:
+        input type="text" name="title"
+        span class="formlabel"
+          | Album:
+        input type="text" name="album"
+        span class="formlabel"
+          | Artist:
+        input type="text" name="artist"
+        input type="submit" value="Add"
